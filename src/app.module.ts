@@ -19,9 +19,9 @@ import { PurchaseModule } from './purchase/purchase.module';
   providers: [AppService, LoggingGateway],
 })
 export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggingMiddleware)
-      .forRoutes('*'); // Apply to all routes or specify as needed
-  }
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer
+  //     .apply(LoggingMiddleware)
+  //     .forRoutes('*'); // Apply to all routes or specify as needed
+  // }
 }

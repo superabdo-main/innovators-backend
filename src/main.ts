@@ -16,8 +16,8 @@ async function bootstrap() {
   });
 
   // Set up Handlebars as the view engine
-  app.setBaseViewsDir(path.join(__dirname, '..', 'views'));
-  app.setViewEngine('hbs');
+  // app.setBaseViewsDir(path.join(__dirname, '..', 'views'));
+  // app.setViewEngine('hbs');
 
   await app.listen(process.env.PORT || 5000);
 }
