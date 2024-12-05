@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logger</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h1>Real-time Logger</h1>
+    <ul id="log"></ul>
+    <script>
+        const socket = io();
+        const logList = document.getElementById('log');
+
+        socket.on('log', (message) => {
+            const logItem = document.createElement('li');
+            logItem.textContent = message;
+            logList.appendChild(logItem);
+        });
+    </script>
+</body>
+</html>
