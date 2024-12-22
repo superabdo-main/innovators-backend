@@ -14,6 +14,8 @@ const nestjs_prisma_1 = require("nestjs-prisma");
 const logging_gateway_1 = require("./logging.gateway");
 const user_module_1 = require("./user/user.module");
 const purchase_module_1 = require("./purchase/purchase.module");
+const auth_module_1 = require("./auth/auth.module");
+const playstation_module_1 = require("./services/playstation/playstation.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -24,7 +26,9 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
             }),
             user_module_1.UserModule,
-            purchase_module_1.PurchaseModule
+            purchase_module_1.PurchaseModule,
+            auth_module_1.AuthModule,
+            playstation_module_1.PlaystationModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, logging_gateway_1.LoggingGateway],

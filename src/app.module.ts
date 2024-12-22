@@ -6,6 +6,8 @@ import { LoggingGateway } from './logging.gateway';
 import { LoggingMiddleware } from './logging-middleware';
 import { UserModule } from './user/user.module';
 import { PurchaseModule } from './purchase/purchase.module';
+import { AuthModule } from './auth/auth.module';
+import { PlaystationModule } from './services/playstation/playstation.module';
 
 @Module({
   imports: [
@@ -13,7 +15,9 @@ import { PurchaseModule } from './purchase/purchase.module';
       isGlobal: true,
     }),
     UserModule,
-    PurchaseModule
+    PurchaseModule,
+    AuthModule,
+    PlaystationModule
   ],
   controllers: [AppController],
   providers: [AppService, LoggingGateway],

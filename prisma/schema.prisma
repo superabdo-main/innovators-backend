@@ -14,27 +14,41 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model Auth {
+  id        Int        @id @default(autoincrement())
+  uuid      String     @default(uuid())
+  name      String?
+  email     String     @unique
+  phone     String?
+  password  String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  purchases Purchase[]
+}
+
 model Settings {
-  id            Int    @id @default(autoincrement())
-  name          String
-  app_version   String
+  id           Int     @id @default(autoincrement())
+  name         String
+  app_version  String
   last_release String?
 }
 
 model Purchase {
-  id        Int            @id @default(autoincrement())
-  userId    String?
-  fullname  String?
-  address   String?
-  phone     String?
-  date      DateTime?
-  items     cartItem[]
-  issue     issueItem[]
-  total     Float?         @default(0)
-  status    PurchaseStatus @default(OPEN)
-  closed    Boolean        @default(false)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id         Int            @id @default(autoincrement())
+  userId     String?
+  fullname   String?
+  address    String?
+  phone      String?
+  date       DateTime?
+  items      cartItem[]
+  issue      issueItem[]
+  total      Float?         @default(0)
+  status     PurchaseStatus @default(OPEN)
+  closed     Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  AuthUser   Auth?          @relation(fields: [AuthUserId], references: [id])
+  AuthUserId Int?
 }
 
 model cartItem {
@@ -60,6 +74,37 @@ model issueItem {
   purchaseId    Int?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+model MainServices {
+  id          Int      @id @default(autoincrement())
+  serviceName String?
+  serviceId   String?
+  enabled     Boolean?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PlayStationFastatServiceOptions {
+  id        Int                                   @id @default(autoincrement())
+  name      String?
+  subTitle  String?
+  enabled   Boolean?
+  items     PlayStationFastatServiceOptionItems[]
+  createdAt DateTime                              @default(now())
+  updatedAt DateTime                              @updatedAt
+}
+
+model PlayStationFastatServiceOptionItems {
+  id        Int                             @id @default(autoincrement())
+  name      String?
+  price     Float?
+  stock     Int?
+  enabled   Boolean?
+  service   PlayStationFastatServiceOptions @relation(fields: [serviceId], references: [id])
+  serviceId Int
+  createdAt DateTime                        @default(now())
+  updatedAt DateTime                        @updatedAt
 }
 
 enum PurchaseStatus {

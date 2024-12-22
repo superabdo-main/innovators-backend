@@ -16,6 +16,7 @@ export declare class PurchaseService {
             status: import("@prisma/client").$Enums.PurchaseStatus;
             createdAt: Date;
             updatedAt: Date;
+            AuthUserId: number | null;
         }[];
         ok: boolean;
         error: string;
@@ -33,6 +34,7 @@ export declare class PurchaseService {
             status: import("@prisma/client").$Enums.PurchaseStatus;
             createdAt: Date;
             updatedAt: Date;
+            AuthUserId: number | null;
         };
         ok: boolean;
         error: string;
@@ -76,6 +78,7 @@ export declare class PurchaseService {
             status: import("@prisma/client").$Enums.PurchaseStatus;
             createdAt: Date;
             updatedAt: Date;
+            AuthUserId: number | null;
         })[];
         ok: boolean;
         error: string;
@@ -124,6 +127,7 @@ export declare class PurchaseService {
             status: import("@prisma/client").$Enums.PurchaseStatus;
             createdAt: Date;
             updatedAt: Date;
+            AuthUserId: number | null;
         })[];
         ok: boolean;
         error: string;
@@ -163,6 +167,7 @@ export declare class PurchaseService {
             status: import("@prisma/client").$Enums.PurchaseStatus;
             createdAt: Date;
             updatedAt: Date;
+            AuthUserId: number | null;
         })[];
         ok: boolean;
         error: string;
