@@ -13,6 +13,7 @@ exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const nestjs_prisma_1 = require("nestjs-prisma");
 const bcrypt = require("bcrypt");
+const uuid_1 = require("../utils/uuid");
 let AuthService = class AuthService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -47,6 +48,37 @@ let AuthService = class AuthService {
             };
         }
     }
+    async createFixerUser(createAuthDto) {
+        try {
+            const { uuid } = createAuthDto;
+            const auth = await this.prisma.fixerUser.create({
+                data: {
+                    ...createAuthDto,
+                    uuid: uuid || (0, uuid_1.generateUUID)(),
+                    balance: {
+                        create: {},
+                    },
+                    idCard: {
+                        create: {},
+                    },
+                    stats: {
+                        create: {},
+                    },
+                },
+            });
+            const { password, ...result } = auth;
+            return { data: result, status: 201, ok: true, error: '' };
+        }
+        catch (error) {
+            console.log(error);
+            return {
+                data: {},
+                status: 205,
+                ok: false,
+                error: 'An error occurred while creating the auth',
+            };
+        }
+    }
     async login(authDto) {
         try {
             const auth = await this.prisma.auth.findUnique({
@@ -67,6 +99,43 @@ let AuthService = class AuthService {
                 return { data: result, status: 201, ok: true, error: '' };
             }
             return { data: {}, status: 201, ok: false, error: 'Invalid credentials' };
+        }
+        catch (error) {
+            return {
+                data: {},
+                status: 205,
+                ok: false,
+                error: 'An error occurred while logging in',
+            };
+        }
+    }
+    async fixerLogin(authDto) {
+        try {
+            const auth = await this.prisma.fixerUser.findUnique({
+                where: {
+                    uuid: authDto.uuid,
+                    AND: {
+                        password: authDto.password,
+                    },
+                },
+                include: {
+                    balance: true,
+                    idCard: true,
+                    stats: true,
+                    activeOrder: true,
+                    orders: true,
+                    ordersNotes: true,
+                },
+            });
+            if (!auth)
+                return {
+                    data: {},
+                    status: 201,
+                    ok: false,
+                    error: 'Invalid credentials',
+                };
+            const { password, ...result } = auth;
+            return { data: result, status: 201, ok: true, error: '' };
         }
         catch (error) {
             return {

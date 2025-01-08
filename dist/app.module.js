@@ -12,11 +12,18 @@ const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const nestjs_prisma_1 = require("nestjs-prisma");
 const logging_gateway_1 = require("./logging.gateway");
+const logging_middleware_1 = require("./logging-middleware");
 const user_module_1 = require("./user/user.module");
 const purchase_module_1 = require("./purchase/purchase.module");
 const auth_module_1 = require("./auth/auth.module");
 const playstation_module_1 = require("./services/playstation/playstation.module");
+const fixer_module_1 = require("./fixer/fixer.module");
 let AppModule = class AppModule {
+    configure(consumer) {
+        consumer
+            .apply(logging_middleware_1.LoggingMiddleware)
+            .forRoutes('*');
+    }
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
@@ -28,7 +35,8 @@ exports.AppModule = AppModule = __decorate([
             user_module_1.UserModule,
             purchase_module_1.PurchaseModule,
             auth_module_1.AuthModule,
-            playstation_module_1.PlaystationModule
+            playstation_module_1.PlaystationModule,
+            fixer_module_1.FixerModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, logging_gateway_1.LoggingGateway],

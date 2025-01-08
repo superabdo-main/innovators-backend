@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Version } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
+import { CreateAuthDto, CreateFixerAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto'
-import { AuthDto } from './dto/auth.dto';
+import { AuthDto, FixerAuthDto } from './dto/auth.dto';
 
 
 @Controller('auth')
@@ -14,9 +14,19 @@ export class AuthController {
     return this.authService.create(createAuthDto);
   }
 
+  @Post('/fixer/create')
+  createFixerUser(@Body() createAuthDto: CreateFixerAuthDto) {
+    return this.authService.createFixerUser(createAuthDto);
+  }
+
   @Post('/login')
   login(@Body() authDto: AuthDto) {
     return this.authService.login(authDto);
+  }
+  
+  @Post('/fixer/login')
+  fixerLogin(@Body() authDto: FixerAuthDto) {
+    return this.authService.fixerLogin(authDto);
   }
 
   @Get(':id')

@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { PurchaseModule } from './purchase/purchase.module';
 import { AuthModule } from './auth/auth.module';
 import { PlaystationModule } from './services/playstation/playstation.module';
+import { FixerModule } from './fixer/fixer.module';
 
 @Module({
   imports: [
@@ -17,15 +18,16 @@ import { PlaystationModule } from './services/playstation/playstation.module';
     UserModule,
     PurchaseModule,
     AuthModule,
-    PlaystationModule
+    PlaystationModule,
+    FixerModule
   ],
   controllers: [AppController],
   providers: [AppService, LoggingGateway],
 })
 export class AppModule {
-  // configure(consumer: MiddlewareConsumer) {
-  //   consumer
-  //     .apply(LoggingMiddleware)
-  //     .forRoutes('*'); // Apply to all routes or specify as needed
-  // }
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggingMiddleware)
+      .forRoutes('*'); // Apply to all routes or specify as needed
+  }
 }

@@ -7,9 +7,11 @@ export declare class UserService {
     create(createUserDto: CreateUserDto): string;
     findAll(): import("@prisma/client").Prisma.Prisma__SettingsClient<{
         id: number;
-        name: string;
-        app_version: string;
+        name: string | null;
+        app_version: string | null;
         last_release: string | null;
+        fixer_app_version: string | null;
+        fixer_app_release: string | null;
     }, null, import("@prisma/client/runtime/library").DefaultArgs>;
     findOne(id: number): string;
     update(id: number, updateUserDto: UpdateUserDto): string;

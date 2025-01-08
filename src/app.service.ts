@@ -11,4 +11,10 @@ export class AppService {
   async getVersion() {
     return await this.prisma.settings.findFirst({select: {app_version: true, last_release: true}});
   }
+
+
+  async getFixerVersion() {
+    return await this.prisma.settings.findFirst({select: {fixer_app_version: true, fixer_app_release: true}});
+  }
+
 }

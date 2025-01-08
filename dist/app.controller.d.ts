@@ -7,4 +7,8 @@ export declare class AppController {
         app_version: string;
         last_release: string;
     }>;
+    getFixerVersion(): Promise<{
+        fixer_app_version: string;
+        fixer_app_release: string;
+    }>;
 }

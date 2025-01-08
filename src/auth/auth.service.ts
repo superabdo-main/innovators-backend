@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
+import { CreateAuthDto, CreateFixerAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from 'nestjs-prisma';
 import * as bcrypt from 'bcrypt';
-import { AuthDto } from './dto/auth.dto';
+import { AuthDto, FixerAuthDto } from './dto/auth.dto';
+import { generateUUID } from 'src/utils/uuid';
 
 @Injectable()
 export class AuthService {
@@ -44,6 +45,40 @@ export class AuthService {
     }
   }
 
+  async createFixerUser(createAuthDto: CreateFixerAuthDto) {
+    try {
+      const { uuid } = createAuthDto;
+
+      const auth = await this.prisma.fixerUser.create({
+        data: {
+          ...createAuthDto,
+          uuid: uuid || generateUUID(),
+          balance: {
+            create: {},
+          },
+          idCard: {
+            create: {},
+          },
+          stats: {
+            create: {},
+          },
+        },
+      });
+
+      const { password, ...result } = auth;
+      return { data: result, status: 201, ok: true, error: '' };
+    } catch (error) {
+      console.log(error);
+
+      return {
+        data: {},
+        status: 205,
+        ok: false,
+        error: 'An error occurred while creating the auth',
+      };
+    }
+  }
+
   async login(authDto: AuthDto) {
     try {
       const auth = await this.prisma.auth.findUnique({
@@ -70,6 +105,44 @@ export class AuthService {
         return { data: result, status: 201, ok: true, error: '' };
       }
       return { data: {}, status: 201, ok: false, error: 'Invalid credentials' };
+    } catch (error) {
+      return {
+        data: {},
+        status: 205,
+        ok: false,
+        error: 'An error occurred while logging in',
+      };
+    }
+  }
+
+  async fixerLogin(authDto: FixerAuthDto) {
+    try {
+      const auth = await this.prisma.fixerUser.findUnique({
+        where: {
+          uuid: authDto.uuid,
+          AND: {
+            password: authDto.password,
+          },
+        },
+        include: {
+          balance: true,
+          idCard: true,
+          stats: true,
+          activeOrder: true,
+          orders: true,
+          ordersNotes: true,
+        },
+      });
+
+      if (!auth)
+        return {
+          data: {},
+          status: 201,
+          ok: false,
+          error: 'Invalid credentials',
+        };
+      const { password, ...result } = auth;
+      return { data: result, status: 201, ok: true, error: '' };
     } catch (error) {
       return {
         data: {},

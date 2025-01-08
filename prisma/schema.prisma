@@ -21,34 +21,131 @@ model Auth {
   email     String     @unique
   phone     String?
   password  String?
+  purchases Purchase[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  purchases Purchase[]
 }
 
-model Settings {
-  id           Int     @id @default(autoincrement())
-  name         String
-  app_version  String
-  last_release String?
+model FixerUser {
+  id                  Int              @id @default(autoincrement())
+  uuid                String           @unique
+  password            String
+  name                String?
+  phone               String?
+  email               String?
+  location            String?
+  profileImage        String?
+  idCard              IDCard?
+  idCardApproved      Boolean          @default(false)
+  professionalLicense Boolean          @default(false)
+  isVerified          Boolean          @default(false)
+  balance             FixerBalance?
+  orders              OrderOperator[]
+  ordersNotes         FixerOrderNote[]
+  activeOrder         ActiveOrder?     @relation(fields: [activeOrderId], references: [id])
+  activeOrderId       Int?             @unique
+  stats               FixerStats?
+  verifiedAt          DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+}
+
+model FixerStats {
+  id            Int       @id @default(autoincrement())
+  fixer         FixerUser @relation(fields: [userId], references: [id])
+  userId        Int       @unique
+  experience    Int?      @default(0)
+  averageRating Float?    @default(0)
+  totalEarnings Float?    @default(0)
+  completedJobs Int?      @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model IDCard {
+  id         Int       @id @default(autoincrement())
+  fixer      FixerUser @relation(fields: [userId], references: [id])
+  userId     Int       @unique
+  code       String?
+  frontImage String?
+  backImage  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model FixerBalance {
+  id             Int       @id @default(autoincrement())
+  fixer          FixerUser @relation(fields: [userId], references: [id])
+  userId         Int       @unique
+  pendingBalance Float?    @default(0)
+  activeBalance  Float?    @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model ActiveOrder {
+  id              Int              @id @default(autoincrement())
+  order           OrderOperator    @relation(fields: [orderOperatorId], references: [id])
+  orderOperatorId Int              @unique
+  fixers          FixerUser[]
+  fixerNotes      FixerOrderNote[]
+  notes           String?
+  closed          Boolean          @default(false)
+  status          OperationStatus  @default(ACTIVE)
+  finishedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model OrderOperator {
+  id                       Int              @id @default(autoincrement())
+  purchase                 Purchase?
+  activeOrder              ActiveOrder?
+  fixers                   FixerUser[]
+  leaderId                 Int?
+  adminNotes               String?
+  fixersNotes              FixerOrderNote[]
+  beginWork                Boolean?
+  clientApproveToBeginWork Boolean?
+  status                   OperationStatus  @default(PENDING)
+  closed                   Boolean          @default(false)
+  startDate                DateTime?
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+}
+
+model FixerOrderNote {
+  id            Int           @id @default(autoincrement())
+  order         OrderOperator @relation(fields: [orderId], references: [id])
+  orderId       Int
+  activeOrder   ActiveOrder?  @relation(fields: [activeOrderId], references: [id])
+  activeOrderId Int?
+  fixer         FixerUser     @relation(fields: [fixerUserId], references: [id])
+  fixerUserId   Int
+  note          String?
+  imageUrl      String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Purchase {
-  id         Int            @id @default(autoincrement())
-  userId     String?
-  fullname   String?
-  address    String?
-  phone      String?
-  date       DateTime?
-  items      cartItem[]
-  issue      issueItem[]
-  total      Float?         @default(0)
-  status     PurchaseStatus @default(OPEN)
-  closed     Boolean        @default(false)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  AuthUser   Auth?          @relation(fields: [AuthUserId], references: [id])
-  AuthUserId Int?
+  id              Int             @id @default(autoincrement())
+  userId          String?
+  AuthUser        Auth?           @relation(fields: [AuthUserId], references: [id])
+  AuthUserId      Int?
+  fullname        String?
+  address         String?
+  phone           String?
+  date            DateTime?
+  items           cartItem[]
+  issue           issueItem[]
+  total           Float?          @default(0)
+  status          OperationStatus @default(OPEN)
+  closed          Boolean         @default(false)
+  orderOperator   OrderOperator?  @relation(fields: [orderOperatorId], references: [id])
+  orderOperatorId Int?            @unique
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }
 
 model cartItem {
@@ -107,8 +204,27 @@ model PlayStationFastatServiceOptionItems {
   updatedAt DateTime                        @updatedAt
 }
 
-enum PurchaseStatus {
+model Settings {
+  id                Int     @id @default(autoincrement())
+  name              String?
+  app_version       String?
+  last_release      String?
+  fixer_app_version String?
+  fixer_app_release String?
+}
+
+enum OperationStatus {
+  PENDING
+  ACTIVE
   OPEN
   FINISHED
   CLOSED
 }
+
+// Provide a complete implementation guide for 
+// sending push notifications to a specific Flutter
+// client id in innovators app using a NestJS backend. 
+// Include steps to integrate FCM, set up device token storage,
+// configure Firebase Admin in NestJS, 
+// and create an API endpoint to send notifications. 
+// Ensure the message content is 'Please approve the order.' 

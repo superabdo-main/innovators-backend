@@ -25,8 +25,14 @@ let AuthController = class AuthController {
     create(createAuthDto) {
         return this.authService.create(createAuthDto);
     }
+    createFixerUser(createAuthDto) {
+        return this.authService.createFixerUser(createAuthDto);
+    }
     login(authDto) {
         return this.authService.login(authDto);
+    }
+    fixerLogin(authDto) {
+        return this.authService.fixerLogin(authDto);
     }
     findOne(id) {
         return this.authService.findOne(+id);
@@ -47,12 +53,26 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "create", null);
 __decorate([
+    (0, common_1.Post)('/fixer/create'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_auth_dto_1.CreateFixerAuthDto]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "createFixerUser", null);
+__decorate([
     (0, common_1.Post)('/login'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [auth_dto_1.AuthDto]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('/fixer/login'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [auth_dto_1.FixerAuthDto]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "fixerLogin", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
