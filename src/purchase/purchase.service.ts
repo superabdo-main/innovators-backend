@@ -1,11 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
-import { UpdatePurchaseDto } from './dto/update-purchase.dto';
 import { PrismaService } from 'nestjs-prisma';
+import { OrdersService } from 'src/orders/orders.service';
 
 @Injectable()
 export class PurchaseService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private orderService: OrdersService) {}
 
 
   async getClosestOrder(id: string) {
@@ -48,7 +48,8 @@ export class PurchaseService {
           userId: userId,
         },
       });
-      return { data: purchase, ok: true, error: '' };
+      const order = await this.orderService.create(purchase.id, new Date(date));
+      return { data: order, ok: true, error: '' };
     } catch (error) {
       return {
         data: [],

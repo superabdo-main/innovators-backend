@@ -122,9 +122,6 @@ let AuthService = class AuthService {
                     balance: true,
                     idCard: true,
                     stats: true,
-                    activeOrder: true,
-                    orders: true,
-                    ordersNotes: true,
                 },
             });
             if (!auth)

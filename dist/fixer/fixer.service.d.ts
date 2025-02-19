@@ -2,23 +2,13 @@ import { PrismaService } from 'nestjs-prisma';
 export declare class FixerService {
     private prisma;
     constructor(prisma: PrismaService);
-    fetchFixerData(id: number): Promise<{
+    fetchFixerData(id: string): Promise<{
         data: {};
         status: number;
         ok: boolean;
         error: string;
     } | {
         data: {
-            activeOrder: {
-                id: number;
-                closed: boolean;
-                status: import("@prisma/client").$Enums.OperationStatus;
-                orderOperatorId: number;
-                createdAt: Date;
-                updatedAt: Date;
-                notes: string | null;
-                finishedAt: Date | null;
-            };
             idCard: {
                 id: number;
                 userId: number;
@@ -36,18 +26,6 @@ export declare class FixerService {
                 pendingBalance: number | null;
                 activeBalance: number | null;
             };
-            orders: {
-                id: number;
-                closed: boolean;
-                status: import("@prisma/client").$Enums.OperationStatus;
-                createdAt: Date;
-                updatedAt: Date;
-                leaderId: number | null;
-                adminNotes: string | null;
-                beginWork: boolean | null;
-                clientApproveToBeginWork: boolean | null;
-                startDate: Date | null;
-            }[];
             stats: {
                 id: number;
                 userId: number;
@@ -60,10 +38,9 @@ export declare class FixerService {
             };
             id: number;
             name: string | null;
-            phone: string | null;
-            createdAt: Date;
-            updatedAt: Date;
+            userId: string | null;
             uuid: string;
+            phone: string | null;
             email: string | null;
             location: string | null;
             profileImage: string | null;
@@ -72,6 +49,29 @@ export declare class FixerService {
             isVerified: boolean;
             activeOrderId: number | null;
             verifiedAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        status: number;
+        ok: boolean;
+        error: string;
+    }>;
+    findAvailableFixers(number: number, startDate: Date): Promise<{
+        data: {
+            fixerIds: any[];
+            leaderId: any;
+            nextAvailableTime: Date;
+            message: string;
+        };
+        status: number;
+        ok: boolean;
+        error: string;
+    } | {
+        data: {
+            fixerIds: string[];
+            leaderId: string;
+            message: string;
+            nextAvailableTime?: undefined;
         };
         status: number;
         ok: boolean;

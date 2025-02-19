@@ -12,9 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PurchaseService = void 0;
 const common_1 = require("@nestjs/common");
 const nestjs_prisma_1 = require("nestjs-prisma");
+const orders_service_1 = require("../orders/orders.service");
 let PurchaseService = class PurchaseService {
-    constructor(prisma) {
+    constructor(prisma, orderService) {
         this.prisma = prisma;
+        this.orderService = orderService;
     }
     async getClosestOrder(id) {
         try {
@@ -55,7 +57,8 @@ let PurchaseService = class PurchaseService {
                     userId: userId,
                 },
             });
-            return { data: purchase, ok: true, error: '' };
+            const order = await this.orderService.create(purchase.id, new Date(date));
+            return { data: order, ok: true, error: '' };
         }
         catch (error) {
             return {
@@ -184,6 +187,6 @@ let PurchaseService = class PurchaseService {
 exports.PurchaseService = PurchaseService;
 exports.PurchaseService = PurchaseService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [nestjs_prisma_1.PrismaService])
+    __metadata("design:paramtypes", [nestjs_prisma_1.PrismaService, orders_service_1.OrdersService])
 ], PurchaseService);
 //# sourceMappingURL=purchase.service.js.map

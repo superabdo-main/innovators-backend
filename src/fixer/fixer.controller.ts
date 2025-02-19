@@ -6,7 +6,7 @@ export class FixerController {
   constructor(private readonly fixerService: FixerService) {}
 
   @Get('fetch-data/:id')
-  fetchFixerData(@Param('id', ParseIntPipe) id: number) {
+  fetchFixerData(@Param('id', ParseIntPipe) id: string) {
     return this.fixerService.fetchFixerData(id);
   }
 }

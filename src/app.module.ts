@@ -9,6 +9,7 @@ import { PurchaseModule } from './purchase/purchase.module';
 import { AuthModule } from './auth/auth.module';
 import { PlaystationModule } from './services/playstation/playstation.module';
 import { FixerModule } from './fixer/fixer.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { FixerModule } from './fixer/fixer.module';
     PurchaseModule,
     AuthModule,
     PlaystationModule,
-    FixerModule
+    FixerModule,
+    OrdersModule
   ],
   controllers: [AppController],
   providers: [AppService, LoggingGateway],

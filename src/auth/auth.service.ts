@@ -128,12 +128,9 @@ export class AuthService {
           balance: true,
           idCard: true,
           stats: true,
-          activeOrder: true,
-          orders: true,
-          ordersNotes: true,
         },
       });
-
+      
       if (!auth)
         return {
           data: {},
@@ -143,7 +140,7 @@ export class AuthService {
         };
       const { password, ...result } = auth;
       return { data: result, status: 201, ok: true, error: '' };
-    } catch (error) {
+    } catch (error) {      
       return {
         data: {},
         status: 205,

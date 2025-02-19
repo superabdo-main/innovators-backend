@@ -28,6 +28,7 @@ model Auth {
 
 model FixerUser {
   id                  Int              @id @default(autoincrement())
+  userId              String?          @unique @default(uuid())
   uuid                String           @unique
   password            String
   name                String?
@@ -52,7 +53,7 @@ model FixerUser {
 
 model FixerStats {
   id            Int       @id @default(autoincrement())
-  fixer         FixerUser @relation(fields: [userId], references: [id])
+  fixer         FixerUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        Int       @unique
   experience    Int?      @default(0)
   averageRating Float?    @default(0)
@@ -64,7 +65,7 @@ model FixerStats {
 
 model IDCard {
   id         Int       @id @default(autoincrement())
-  fixer      FixerUser @relation(fields: [userId], references: [id])
+  fixer      FixerUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     Int       @unique
   code       String?
   frontImage String?
@@ -75,7 +76,7 @@ model IDCard {
 
 model FixerBalance {
   id             Int       @id @default(autoincrement())
-  fixer          FixerUser @relation(fields: [userId], references: [id])
+  fixer          FixerUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         Int       @unique
   pendingBalance Float?    @default(0)
   activeBalance  Float?    @default(0)
@@ -88,7 +89,7 @@ model ActiveOrder {
   order           OrderOperator    @relation(fields: [orderOperatorId], references: [id])
   orderOperatorId Int              @unique
   fixers          FixerUser[]
-  fixerNotes      FixerOrderNote[]
+  fixersNotes     FixerOrderNote[]
   notes           String?
   closed          Boolean          @default(false)
   status          OperationStatus  @default(ACTIVE)
@@ -102,7 +103,7 @@ model OrderOperator {
   purchase                 Purchase?
   activeOrder              ActiveOrder?
   fixers                   FixerUser[]
-  leaderId                 Int?
+  leaderId                 String?
   adminNotes               String?
   fixersNotes              FixerOrderNote[]
   beginWork                Boolean?
@@ -120,7 +121,7 @@ model FixerOrderNote {
   orderId       Int
   activeOrder   ActiveOrder?  @relation(fields: [activeOrderId], references: [id])
   activeOrderId Int?
-  fixer         FixerUser     @relation(fields: [fixerUserId], references: [id])
+  fixer         FixerUser     @relation(fields: [fixerUserId], references: [id], onDelete: Cascade)
   fixerUserId   Int
   note          String?
   imageUrl      String?

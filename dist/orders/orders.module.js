@@ -6,19 +6,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PurchaseModule = void 0;
+exports.OrdersModule = void 0;
 const common_1 = require("@nestjs/common");
-const purchase_service_1 = require("./purchase.service");
-const purchase_controller_1 = require("./purchase.controller");
-const orders_service_1 = require("../orders/orders.service");
+const orders_service_1 = require("./orders.service");
+const orders_controller_1 = require("./orders.controller");
 const fixer_service_1 = require("../fixer/fixer.service");
-let PurchaseModule = class PurchaseModule {
+let OrdersModule = class OrdersModule {
 };
-exports.PurchaseModule = PurchaseModule;
-exports.PurchaseModule = PurchaseModule = __decorate([
+exports.OrdersModule = OrdersModule;
+exports.OrdersModule = OrdersModule = __decorate([
     (0, common_1.Module)({
-        controllers: [purchase_controller_1.PurchaseController],
-        providers: [purchase_service_1.PurchaseService, orders_service_1.OrdersService, fixer_service_1.FixerService],
+        controllers: [orders_controller_1.OrdersController],
+        providers: [orders_service_1.OrdersService, fixer_service_1.FixerService],
     })
-], PurchaseModule);
-//# sourceMappingURL=purchase.module.js.map
+], OrdersModule);
+//# sourceMappingURL=orders.module.js.map

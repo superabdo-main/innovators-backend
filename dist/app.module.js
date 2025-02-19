@@ -18,6 +18,7 @@ const purchase_module_1 = require("./purchase/purchase.module");
 const auth_module_1 = require("./auth/auth.module");
 const playstation_module_1 = require("./services/playstation/playstation.module");
 const fixer_module_1 = require("./fixer/fixer.module");
+const orders_module_1 = require("./orders/orders.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer
@@ -36,7 +37,8 @@ exports.AppModule = AppModule = __decorate([
             purchase_module_1.PurchaseModule,
             auth_module_1.AuthModule,
             playstation_module_1.PlaystationModule,
-            fixer_module_1.FixerModule
+            fixer_module_1.FixerModule,
+            orders_module_1.OrdersModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, logging_gateway_1.LoggingGateway],
