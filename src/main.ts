@@ -2,7 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { VersioningType } from '@nestjs/common';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import * as path from 'path';
+import { PrismaService } from 'nestjs-prisma';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -14,10 +16,11 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI,
   });
-
-  // Set up Handlebars as the view engine
-  // app.setBaseViewsDir(path.join(__dirname, '..', 'views'));
-  // app.setViewEngine('hbs');
+  // Get PrismaService instance
+  const prismaService = app.get(PrismaService);
+  
+  // Apply global exception filter
+  app.useGlobalFilters(new GlobalExceptionFilter(prismaService));
 
   await app.listen(process.env.PORT || 5000);
 }

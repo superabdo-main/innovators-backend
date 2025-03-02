@@ -19,9 +19,6 @@ let AppController = class AppController {
     getHello() {
         return this.appService.getHello();
     }
-    getVersion() {
-        return this.appService.getVersion();
-    }
     getFixerVersion() {
         return this.appService.getFixerVersion();
     }
@@ -33,12 +30,6 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "getHello", null);
-__decorate([
-    (0, common_1.Get)('/version'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], AppController.prototype, "getVersion", null);
 __decorate([
     (0, common_1.Get)('/fixerversion'),
     __metadata("design:type", Function),

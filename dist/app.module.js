@@ -13,12 +13,16 @@ const app_service_1 = require("./app.service");
 const nestjs_prisma_1 = require("nestjs-prisma");
 const logging_gateway_1 = require("./logging.gateway");
 const logging_middleware_1 = require("./logging-middleware");
-const user_module_1 = require("./user/user.module");
-const purchase_module_1 = require("./purchase/purchase.module");
-const auth_module_1 = require("./auth/auth.module");
-const playstation_module_1 = require("./services/playstation/playstation.module");
-const fixer_module_1 = require("./fixer/fixer.module");
-const orders_module_1 = require("./orders/orders.module");
+const purchase_module_1 = require("./routes/purchase/purchase.module");
+const auth_module_1 = require("./routes/auth/auth.module");
+const playstation_module_1 = require("./routes/services/playstation/playstation.module");
+const fixer_module_1 = require("./routes/fixer/fixer.module");
+const orders_module_1 = require("./routes/orders/orders.module");
+const services_module_1 = require("./routes/services/services.module");
+const maintenance_module_1 = require("./routes/maintenance/maintenance.module");
+const client_module_1 = require("./routes/client/client.module");
+const version_module_1 = require("./routes/version/version.module");
+const token_jwt_module_1 = require("./modules/token-jwt/token-jwt.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer
@@ -33,12 +37,16 @@ exports.AppModule = AppModule = __decorate([
             nestjs_prisma_1.PrismaModule.forRoot({
                 isGlobal: true,
             }),
-            user_module_1.UserModule,
             purchase_module_1.PurchaseModule,
             auth_module_1.AuthModule,
             playstation_module_1.PlaystationModule,
             fixer_module_1.FixerModule,
-            orders_module_1.OrdersModule
+            orders_module_1.OrdersModule,
+            services_module_1.ServicesModule,
+            maintenance_module_1.MaintenanceModule,
+            client_module_1.ClientModule,
+            version_module_1.VersionModule,
+            token_jwt_module_1.TokenJwtModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, logging_gateway_1.LoggingGateway],

@@ -14,22 +14,23 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model Auth {
-  id        Int        @id @default(autoincrement())
-  uuid      String     @default(uuid())
+model ClientUser {
+  id        Int             @id @default(autoincrement())
+  uuid      String          @default(uuid())
   name      String?
-  email     String     @unique
+  email     String          @unique
   phone     String?
   password  String?
   purchases Purchase[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  sessions  ClientSession[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 }
 
 model FixerUser {
-  id                  Int              @id @default(autoincrement())
-  userId              String?          @unique @default(uuid())
-  uuid                String           @unique
+  id                  Int                  @id @default(autoincrement())
+  userId              String?              @unique @default(uuid())
+  uuid                String               @unique
   password            String
   name                String?
   phone               String?
@@ -37,36 +38,55 @@ model FixerUser {
   location            String?
   profileImage        String?
   idCard              IDCard?
-  idCardApproved      Boolean          @default(false)
-  professionalLicense Boolean          @default(false)
-  isVerified          Boolean          @default(false)
+  idCardApproved      Boolean              @default(false)
+  professionalLicense Boolean              @default(false)
+  isVerified          Boolean              @default(false)
+  verifiedAt          DateTime?
   balance             FixerBalance?
   orders              OrderOperator[]
+  leaderOfOrders      OrderOperator[]      @relation(name: "OrderOperator_leader")
   ordersNotes         FixerOrderNote[]
-  activeOrder         ActiveOrder?     @relation(fields: [activeOrderId], references: [id])
-  activeOrderId       Int?             @unique
+  activeOrder         ActiveOrderOperator? @relation(fields: [activeOrderId], references: [id])
+  activeOrderId       Int?                 @unique
   stats               FixerStats?
-  verifiedAt          DateTime?
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
+  sessions            Session[] // Added sessions relation
+  activeServices      MainServices[]
+  workShift           WorkShift?
+  // IN PROGRESS
+  isBanned            Boolean              @default(false)
+  // IN PROGRESS
+  pause               Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 }
 
 model FixerStats {
-  id            Int       @id @default(autoincrement())
-  fixer         FixerUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        Int       @unique
-  experience    Int?      @default(0)
-  averageRating Float?    @default(0)
-  totalEarnings Float?    @default(0)
-  completedJobs Int?      @default(0)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                 Int       @id @default(autoincrement())
+  fixer              FixerUser @relation(fields: [fixerId], references: [id], onDelete: Cascade)
+  fixerId            Int       @unique
+  monthsOfExperience Int?      @default(0)
+  averageRating      Float?    @default(0)
+  totalEarnings      Float?    @default(0)
+  completedJobs      Int?      @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model WorkShift {
+  id        Int       @id @default(autoincrement())
+  fixer     FixerUser @relation(fields: [fixerId], references: [id], onDelete: Cascade)
+  fixerId   Int       @unique
+  label     String?
+  start     String // Store as "HH:mm" format
+  end       String // Store as "HH:mm" format
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model IDCard {
   id         Int       @id @default(autoincrement())
-  fixer      FixerUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     Int       @unique
+  fixer      FixerUser @relation(fields: [fixerId], references: [id], onDelete: Cascade)
+  fixerId    Int       @unique
   code       String?
   frontImage String?
   backImage  String?
@@ -84,125 +104,184 @@ model FixerBalance {
   updatedAt      DateTime  @updatedAt
 }
 
-model ActiveOrder {
-  id              Int              @id @default(autoincrement())
-  order           OrderOperator    @relation(fields: [orderOperatorId], references: [id])
-  orderOperatorId Int              @unique
-  fixers          FixerUser[]
-  fixersNotes     FixerOrderNote[]
-  notes           String?
-  closed          Boolean          @default(false)
-  status          OperationStatus  @default(ACTIVE)
-  finishedAt      DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-}
-
-model OrderOperator {
-  id                       Int              @id @default(autoincrement())
-  purchase                 Purchase?
-  activeOrder              ActiveOrder?
-  fixers                   FixerUser[]
-  leaderId                 String?
-  adminNotes               String?
-  fixersNotes              FixerOrderNote[]
-  beginWork                Boolean?
-  clientApproveToBeginWork Boolean?
-  status                   OperationStatus  @default(PENDING)
-  closed                   Boolean          @default(false)
-  startDate                DateTime?
-  createdAt                DateTime         @default(now())
-  updatedAt                DateTime         @updatedAt
-}
-
-model FixerOrderNote {
-  id            Int           @id @default(autoincrement())
-  order         OrderOperator @relation(fields: [orderId], references: [id])
-  orderId       Int
-  activeOrder   ActiveOrder?  @relation(fields: [activeOrderId], references: [id])
-  activeOrderId Int?
-  fixer         FixerUser     @relation(fields: [fixerUserId], references: [id], onDelete: Cascade)
-  fixerUserId   Int
-  note          String?
-  imageUrl      String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-}
-
-model Purchase {
+model ActiveOrderOperator {
   id              Int             @id @default(autoincrement())
-  userId          String?
-  AuthUser        Auth?           @relation(fields: [AuthUserId], references: [id])
-  AuthUserId      Int?
-  fullname        String?
-  address         String?
-  phone           String?
-  date            DateTime?
-  items           cartItem[]
-  issue           issueItem[]
-  total           Float?          @default(0)
-  status          OperationStatus @default(OPEN)
-  closed          Boolean         @default(false)
-  orderOperator   OrderOperator?  @relation(fields: [orderOperatorId], references: [id])
-  orderOperatorId Int?            @unique
+  order           OrderOperator   @relation(fields: [orderOperatorId], references: [id])
+  orderOperatorId Int             @unique
+  fixers          FixerUser[]
+  status          OperationStatus @default(ACTIVE)
+  finishTime      DateTime?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 }
 
-model cartItem {
-  id         Int       @id @default(autoincrement())
-  uuid       String?
-  name       String?
-  price      Float?
-  amount     Int?
-  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
-  purchaseId Int?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+model OrderOperator {
+  id                       Int                  @id @default(autoincrement())
+  purchase                 Purchase?
+  activeOrder              ActiveOrderOperator?
+  fixers                   FixerUser[]
+  leader                   FixerUser            @relation(fields: [leaderId], references: [id], name: "OrderOperator_leader")
+  leaderId                 Int
+  adminNotes               String?
+  fixersNotes              FixerOrderNote[]
+  beginWork                Boolean?
+  clientApproveToBeginWork Boolean?
+  status                   OperationStatus      @default(PENDING)
+  closed                   Boolean              @default(false)
+  clientRate               Float?
+  clientNotes              String?
+  maintenanceDuration      Float?
+  startTime                DateTime?
+  endTime                  DateTime?
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
 }
 
-model issueItem {
-  id            Int       @id @default(autoincrement())
-  uuid          String?
-  mainTypeLabel String?
-  subTypeLabel  String?
-  description   String?
-  imageUrls     String[]
-  purchase      Purchase? @relation(fields: [purchaseId], references: [id])
-  purchaseId    Int?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+model FixerOrderNote {
+  id          Int           @id @default(autoincrement())
+  order       OrderOperator @relation(fields: [orderId], references: [id])
+  orderId     Int
+  fixer       FixerUser     @relation(fields: [fixerUserId], references: [id], onDelete: Cascade)
+  fixerUserId Int
+  note        String?
+  imageUrl    String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Purchase {
+  id              Int               @id @default(autoincrement())
+  client          ClientUser?       @relation(fields: [clientId], references: [id])
+  clientId        Int?
+  fullname        String?
+  address         String?
+  phone           String?
+  maintenanceDate DateTime?
+  items           CartItem[]
+  malfunctions    CartMalfunction[]
+  subTotal        Float?            @default(0)
+  discount        Float?            @default(0)
+  total           Float?            @default(0)
+  orderOperator   OrderOperator?    @relation(fields: [orderOperatorId], references: [id])
+  orderOperatorId Int?              @unique
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model CartItem {
+  id         Int          @id @default(autoincrement())
+  itemUUID   String?
+  service    MainServices @relation(fields: [serviceId], references: [id])
+  serviceId  Int
+  price      Float?
+  quantity   Int          @default(1)
+  purchase   Purchase?    @relation(fields: [purchaseId], references: [id])
+  purchaseId Int?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+model CartMalfunction {
+  id          Int          @id @default(autoincrement())
+  itemUUID    String?
+  service     MainServices @relation(fields: [serviceId], references: [id])
+  serviceId   Int
+  description String?
+  imagesUrls  String[]
+  purchase    Purchase?    @relation(fields: [purchaseId], references: [id])
+  purchaseId  Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model MainServices {
-  id          Int      @id @default(autoincrement())
-  serviceName String?
-  serviceId   String?
-  enabled     Boolean?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               Int               @id @default(autoincrement())
+  serviceName      String?
+  serviceId        String?
+  enabled          Boolean?          @default(false)
+  isOpen           Boolean?          @default(true)
+  imageUrl         String?
+  sortNumber       Int?              @default(0)
+  subscribedFixers FixerUser[]
+  cartItem         CartItem[]
+  cartMalfunction  CartMalfunction[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
-model PlayStationFastatServiceOptions {
-  id        Int                                   @id @default(autoincrement())
-  name      String?
-  subTitle  String?
-  enabled   Boolean?
-  items     PlayStationFastatServiceOptionItems[]
-  createdAt DateTime                              @default(now())
-  updatedAt DateTime                              @updatedAt
+// PLAYSTATION SERVICE
+model PlayStationFastatCategory {
+  id         Int                      @id @default(autoincrement())
+  title      String?
+  subTitle   String?
+  active     Boolean?                 @default(false)
+  items      PlayStationFastatItems[]
+  sortNumber Int?                     @default(1)
+  createdAt  DateTime                 @default(now())
+  updatedAt  DateTime                 @updatedAt
 }
 
-model PlayStationFastatServiceOptionItems {
-  id        Int                             @id @default(autoincrement())
-  name      String?
-  price     Float?
-  stock     Int?
-  enabled   Boolean?
-  service   PlayStationFastatServiceOptions @relation(fields: [serviceId], references: [id])
-  serviceId Int
-  createdAt DateTime                        @default(now())
-  updatedAt DateTime                        @updatedAt
+model PlayStationFastatItems {
+  id              Int                         @id @default(autoincrement())
+  name            String?
+  sku             PlayStationFastatItemsSKU[]
+  active          Boolean?                    @default(false)
+  maintenanceTime Int?                        @default(0)
+  category        PlayStationFastatCategory?  @relation(fields: [categoryId], references: [id])
+  categoryId      Int?
+  sortNumber      Int?                        @default(0)
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+}
+
+model PlayStationFastatItemsSKU {
+  id        Int                     @id @default(autoincrement())
+  stock     Int?                    @default(0)
+  discount  Float?                  @default(0)
+  price     Float?                  @default(0)
+  product   PlayStationFastatItems? @relation(fields: [productId], references: [id])
+  productId Int?
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+}
+
+model PlayStationMalfunctionMainCategory {
+  id         Int                                 @id @default(autoincrement())
+  title      String?
+  subTitle   String?
+  imageUrl   String?
+  active     Boolean?                            @default(false)
+  items      PlayStationMalfunctionSubCategory[]
+  sortNumber Int?                                @default(1)
+  createdAt  DateTime                            @default(now())
+  updatedAt  DateTime                            @updatedAt
+}
+
+model PlayStationMalfunctionSubCategory {
+  id         Int                                 @id @default(autoincrement())
+  title      String?
+  subTitle   String?
+  imageUrl   String?
+  active     Boolean?                            @default(false)
+  sortNumber Int?                                @default(1)
+  category   PlayStationMalfunctionMainCategory? @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+  items      PlayStationMalfunctionItem[]
+  createdAt  DateTime                            @default(now())
+  updatedAt  DateTime                            @updatedAt
+}
+
+model PlayStationMalfunctionItem {
+  id         Int                                @id @default(autoincrement())
+  title      String?
+  subTitle   String?
+  imageUrl   String?
+  active     Boolean?                           @default(false)
+  sortNumber Int?                               @default(1)
+  category   PlayStationMalfunctionSubCategory? @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+  createdAt  DateTime                           @default(now())
+  updatedAt  DateTime                           @updatedAt
 }
 
 model Settings {
@@ -212,6 +291,87 @@ model Settings {
   last_release      String?
   fixer_app_version String?
   fixer_app_release String?
+}
+
+model VersionRelease {
+  id           Int      @id @default(autoincrement())
+  version      String?
+  releaseNotes String?
+  url          String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ClientSession {
+  id           Int        @id @default(autoincrement())
+  token        String     @unique
+  client       ClientUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  deviceId     String // Unique device identifier
+  deviceModel  String // Device model information
+  deviceOs     String // Device operating system
+  isActive     Boolean    @default(true)
+  lastActivity DateTime   @default(now())
+  expiresAt    DateTime // Session expiration time
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Session {
+  id           Int       @id @default(autoincrement())
+  token        String    @unique // JWT token hash
+  fixer        FixerUser @relation(fields: [fixerId], references: [id])
+  fixerId      Int
+  deviceId     String // Unique device identifier
+  deviceModel  String // Device model information
+  deviceOs     String // Device operating system
+  isActive     Boolean   @default(true)
+  lastActivity DateTime  @default(now())
+  expiresAt    DateTime // Session expiration time
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([fixerId])
+  @@index([token])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int // Can be either FixerUser id or Auth id
+  type      String // e.g., 'ORDER_ASSIGNMENT', 'ORDER_STATUS_CHANGE', etc.
+  title     String
+  message   String
+  data      Json? // Additional data in JSON format
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MaintenanceTimeTraining {
+  id             Int      @id @default(autoincrement())
+  itemIds        Int[] // Array of PlayStationFastatItem IDs
+  actualDuration Int // Actual time taken by human in minutes
+  systemDuration Int // Sum of individual maintenance times
+  orderId        Int? // Optional reference to the order this training came from
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([itemIds])
+}
+
+model ErrorLog {
+  id          Int      @id @default(autoincrement())
+  statusCode  Int
+  message     String
+  stack       String?  @db.Text
+  path        String
+  method      String
+  timestamp   DateTime @default(now())
+  userId      String?  // Optional: to track which user encountered the error
+  metadata    Json?    // Additional error context
 }
 
 enum OperationStatus {
@@ -228,4 +388,4 @@ enum OperationStatus {
 // Include steps to integrate FCM, set up device token storage,
 // configure Firebase Admin in NestJS, 
 // and create an API endpoint to send notifications. 
-// Ensure the message content is 'Please approve the order.' 
+// Ensure the message content is 'Please approve the order.'

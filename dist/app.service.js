@@ -16,14 +16,20 @@ let AppService = class AppService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    getHello() {
-        return 'Hello World!';
-    }
-    async getVersion() {
-        return await this.prisma.settings.findFirst({ select: { app_version: true, last_release: true } });
+    async getHello() {
+        try {
+            return {
+                message: 'Hello World!',
+            };
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async getFixerVersion() {
-        return await this.prisma.settings.findFirst({ select: { fixer_app_version: true, fixer_app_release: true } });
+        return await this.prisma.settings.findFirst({
+            select: { fixer_app_version: true, fixer_app_release: true },
+        });
     }
 };
 exports.AppService = AppService;

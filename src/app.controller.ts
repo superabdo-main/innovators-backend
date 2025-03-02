@@ -12,11 +12,6 @@ export class AppController {
   }
 
 
-  @Get('/version')
-  getVersion() {
-    return this.appService.getVersion();
-  }
-
   @Get('/fixerversion')
   getFixerVersion() {
     return this.appService.getFixerVersion();

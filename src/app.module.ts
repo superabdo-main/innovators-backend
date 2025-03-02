@@ -4,24 +4,32 @@ import { AppService } from './app.service';
 import { PrismaModule } from 'nestjs-prisma';
 import { LoggingGateway } from './logging.gateway';
 import { LoggingMiddleware } from './logging-middleware';
-import { UserModule } from './user/user.module';
-import { PurchaseModule } from './purchase/purchase.module';
-import { AuthModule } from './auth/auth.module';
-import { PlaystationModule } from './services/playstation/playstation.module';
-import { FixerModule } from './fixer/fixer.module';
-import { OrdersModule } from './orders/orders.module';
+import { PurchaseModule } from './routes/purchase/purchase.module';
+import { AuthModule } from './routes/auth/auth.module';
+import { PlaystationModule } from './routes/services/playstation/playstation.module';
+import { FixerModule } from './routes/fixer/fixer.module';
+import { OrdersModule } from './routes/orders/orders.module';
+import { ServicesModule } from './routes/services/services.module';
+import { MaintenanceModule } from './routes/maintenance/maintenance.module';
+import { ClientModule } from './routes/client/client.module';
+import { VersionModule } from './routes/version/version.module';
+import { TokenJwtModule } from './modules/token-jwt/token-jwt.module';
 
 @Module({
   imports: [
     PrismaModule.forRoot({
       isGlobal: true,
     }),
-    UserModule,
     PurchaseModule,
     AuthModule,
     PlaystationModule,
     FixerModule,
-    OrdersModule
+    OrdersModule,
+    ServicesModule,
+    MaintenanceModule,
+    ClientModule,
+    VersionModule,
+    TokenJwtModule,
   ],
   controllers: [AppController],
   providers: [AppService, LoggingGateway],
