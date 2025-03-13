@@ -20,7 +20,6 @@ export class ClientSessionController {
   }
 
   @Post('session/check')
-  @UseGuards(ClientJwtGuard)
   @HttpCode(200)
   async checkSession(@Headers('authorization') auth: string) {
     const token = auth.replace('Bearer ', '');
@@ -28,10 +27,22 @@ export class ClientSessionController {
   }
 
   @Post('logout')
-  @UseGuards(ClientJwtGuard)
   @HttpCode(200)
   async logout(@Headers('authorization') auth: string) {
     const token = auth.replace('Bearer ', '');
     return this.clientSessionService.logout(token);
+  }
+
+  @Post('fcm-token')
+  // @UseGuards(ClientJwtGuard)
+  @HttpCode(200)
+  async updateFcmToken(
+    @Body() data: { userId: number; deviceId: string; fcmToken: string },
+  ) {
+    return this.clientSessionService.updateFcmToken(
+      data.userId,
+      data.deviceId,
+      data.fcmToken,
+    );
   }
 }

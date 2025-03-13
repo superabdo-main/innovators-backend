@@ -19,6 +19,47 @@ let PlaystationService = class PlaystationService {
     create(createPlaystationDto) {
         return 'This action adds a new playstation';
     }
+    async getFastatServiceOptions() {
+        try {
+            const items = await this.prisma.playStationFastatCategory.findMany({
+                where: {
+                    active: true,
+                },
+                include: {
+                    items: {
+                        where: {
+                            active: true
+                        },
+                        include: {
+                            sku: true,
+                        },
+                        orderBy: {
+                            sortNumber: 'asc',
+                        }
+                    },
+                },
+                orderBy: {
+                    sortNumber: 'asc',
+                }
+            });
+            return {
+                data: items,
+                ok: true,
+                status: 200,
+                error: '',
+            };
+        }
+        catch (error) {
+            throw new common_1.HttpException({
+                status: common_1.HttpStatus.INTERNAL_SERVER_ERROR,
+                error: 'Failed to get fastat service options',
+                additionalInfo: {
+                    details: error.message,
+                    code: 'PLAYSTATION_GET_FASTAT_SERVICE_OPTIONS_ERROR',
+                },
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     findOne(id) {
         return `This action returns a #${id} playstation`;
     }

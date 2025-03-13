@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = require("bcrypt");
 const nestjs_prisma_1 = require("nestjs-prisma");
+const uuid_1 = require("../../utils/uuid");
 let ClientSessionService = class ClientSessionService {
     constructor(prisma, jwtService) {
         this.prisma = prisma;
@@ -35,6 +36,7 @@ let ClientSessionService = class ClientSessionService {
             const hashedPassword = await bcrypt.hash(dto.password, 10);
             const user = await this.prisma.clientUser.create({
                 data: {
+                    uuid: (0, uuid_1.generateUUID)(),
                     email: dto.email,
                     password: hashedPassword,
                     name: dto.name,
@@ -84,6 +86,7 @@ let ClientSessionService = class ClientSessionService {
             return { data: { user, token }, ok: true, status: 201, error: '' };
         }
         catch (error) {
+            console.log(error);
             return {
                 data: {},
                 ok: false,
@@ -125,6 +128,36 @@ let ClientSessionService = class ClientSessionService {
         }
         catch (error) {
             throw new common_1.UnauthorizedException(`Failed to create session ${error}`);
+        }
+    }
+    async updateFcmToken(userId, deviceId, fcmToken) {
+        try {
+            const client = await this.prisma.clientSession.updateMany({
+                where: {
+                    userId: userId,
+                    deviceId: deviceId,
+                    isActive: true,
+                },
+                data: {
+                    fcmToken: fcmToken,
+                    lastActivity: new Date(),
+                },
+            });
+            return {
+                data: { success: true },
+                ok: true,
+                status: 200,
+                error: ''
+            };
+        }
+        catch (error) {
+            console.error('Failed to update FCM token:', error);
+            return {
+                data: { success: false },
+                ok: false,
+                status: 500,
+                error: 'Failed to update FCM token'
+            };
         }
     }
     async deactivateExistingSessions(userId) {

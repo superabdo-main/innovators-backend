@@ -16,7 +16,6 @@ exports.PurchaseController = void 0;
 const common_1 = require("@nestjs/common");
 const purchase_service_1 = require("./purchase.service");
 const create_purchase_dto_1 = require("./dto/create-purchase.dto");
-const client_jwt_guard_1 = require("../auth/guards/client-jwt.guard");
 let PurchaseController = class PurchaseController {
     constructor(purchaseService) {
         this.purchaseService = purchaseService;
@@ -30,7 +29,6 @@ exports.PurchaseController = PurchaseController;
 __decorate([
     (0, common_1.Post)(),
     (0, common_1.HttpCode)(201),
-    (0, common_1.UseGuards)(client_jwt_guard_1.ClientJwtGuard),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Headers)('authorization')),
     __metadata("design:type", Function),

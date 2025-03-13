@@ -8,14 +8,14 @@ export declare class ClientSessionService {
     signup(dto: ClientSignupDto): Promise<{
         data: {
             user: {
-                createdAt: Date;
-                updatedAt: Date;
                 id: number;
                 name: string | null;
                 uuid: string;
                 password: string | null;
                 phone: string | null;
                 email: string;
+                createdAt: Date;
+                updatedAt: Date;
             };
             token: string;
         };
@@ -42,14 +42,14 @@ export declare class ClientSessionService {
     } | {
         data: {
             user: {
-                createdAt: Date;
-                updatedAt: Date;
                 id: number;
                 name: string | null;
                 uuid: string;
                 password: string | null;
                 phone: string | null;
                 email: string;
+                createdAt: Date;
+                updatedAt: Date;
             };
             token: string;
         };
@@ -65,6 +65,14 @@ export declare class ClientSessionService {
     }>;
     private generateToken;
     private createSession;
+    updateFcmToken(userId: number, deviceId: string, fcmToken: string): Promise<{
+        data: {
+            success: boolean;
+        };
+        ok: boolean;
+        status: number;
+        error: string;
+    }>;
     private deactivateExistingSessions;
     checkSession(token: string): Promise<{
         data: {};
@@ -73,10 +81,11 @@ export declare class ClientSessionService {
         error: string;
     } | {
         data: {
-            createdAt: Date;
-            updatedAt: Date;
             id: number;
             userId: number;
+            createdAt: Date;
+            updatedAt: Date;
+            fcmToken: string | null;
             token: string;
             deviceId: string;
             deviceModel: string;

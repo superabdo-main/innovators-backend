@@ -24,6 +24,9 @@ let PlaystationController = class PlaystationController {
     create(createPlaystationDto) {
         return this.playstationService.create(createPlaystationDto);
     }
+    async getFastatServiceOptions() {
+        return await this.playstationService.getFastatServiceOptions();
+    }
     findOne(id) {
         return this.playstationService.findOne(+id);
     }
@@ -42,6 +45,12 @@ __decorate([
     __metadata("design:paramtypes", [create_playstation_dto_1.CreatePlaystationDto]),
     __metadata("design:returntype", void 0)
 ], PlaystationController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)('/fastat'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], PlaystationController.prototype, "getFastatServiceOptions", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
@@ -65,7 +74,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], PlaystationController.prototype, "remove", null);
 exports.PlaystationController = PlaystationController = __decorate([
-    (0, common_1.Controller)('playstation'),
+    (0, common_1.Controller)('services/playstation'),
     __metadata("design:paramtypes", [playstation_service_1.PlaystationService])
 ], PlaystationController);
 //# sourceMappingURL=playstation.controller.js.map

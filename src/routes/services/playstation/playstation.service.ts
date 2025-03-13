@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreatePlaystationDto } from './dto/create-playstation.dto';
 import { UpdatePlaystationDto } from './dto/update-playstation.dto';
 import { PrismaService } from 'nestjs-prisma';
@@ -9,6 +9,50 @@ export class PlaystationService {
 
   create(createPlaystationDto: CreatePlaystationDto) {
     return 'This action adds a new playstation';
+  }
+
+  async getFastatServiceOptions() {
+    try {
+      const items = await this.prisma.playStationFastatCategory.findMany({
+        where: {
+          active: true,
+        },
+        include: {
+          items: {
+            where: {
+              active: true
+            },
+            include: {
+              sku: true,
+            },
+            orderBy: {
+              sortNumber: 'asc',
+            }
+          },
+        },
+        orderBy: {
+          sortNumber: 'asc',
+        }
+      });
+      return {
+        data: items,
+        ok: true,
+        status: 200,
+        error: '',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: 'Failed to get fastat service options',
+          additionalInfo: {
+            details: error.message,
+            code: 'PLAYSTATION_GET_FASTAT_SERVICE_OPTIONS_ERROR',
+          },
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   // async getFastatServiceOptions() {

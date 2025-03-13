@@ -1,44 +1,69 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from 'nestjs-prisma';
-import { FixerService } from 'src/routes/fixer/fixer.service';
+import { FixerAssignmentService } from '../fixer/fixer-assignment.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private prisma: PrismaService,
-    private fixerService: FixerService,
+    private assignmentService: FixerAssignmentService,
   ) {}
 
-  async create(purchaseId: number, startDate: Date) {
+  async create(
+    purchaseId: number,
+    servicesIds: number[],
+    workStartDate: Date,
+    estimatedDuration: number,
+  ) {
     try {
-      // const fixers = await this.fixerService.findAvailableFixers(
-      //   1,
-      //   new Date(startDate),
-      // );
-      // const order = await this.prisma.orderOperator.create({
-      //   data: {
-      //     startDate: new Date(startDate),
-      //     fixers: {
-      //       connect: fixers.data.fixerIds.map((fixerId: any) => {
-      //         return {
-      //           userId: fixerId,
-      //         };
-      //       }),
-      //     },
-      //     leaderId: fixers.data.leaderId,
-      //     purchase: {
-      //       connect: {
-      //         id: purchaseId,
-      //       },
-      //     },
-      //   },
-      //   include: {
-      //     fixers: true,
-      //   },
-      // });
-
-      // return { data: order, fixers: fixers, ok: true, status: 200, error: '' };
+      const fixers = await this.assignmentService.findAvailableFixers(
+        servicesIds,
+        new Date(workStartDate),
+        estimatedDuration,
+      );
+      // if no avaible fixers send notification to with next available time and send back to client
+      // if (!fixers.suggestedFixer) {
+      //   return {
+      //     data: null,
+      //     ok: false,
+      //     status: 400,
+      //     error: 'No available fixers',
+      //   };
+      // }
+      const order = await this.prisma.orderOperator.create({
+        data: {
+          leaderId: fixers.suggestedFixer ? fixers.suggestedFixer.fixer.id : undefined,
+          fixers: fixers.suggestedFixer ? {
+            connect: fixers.suggestedFixer
+              ? {
+                  id: fixers.suggestedFixer.fixer.id,
+                }
+              : undefined,
+          } : undefined,
+          maintenanceStartDate: new Date(workStartDate),
+          purchase: {
+            connect: {
+              id: purchaseId,
+            },
+          },
+          maintenanceDuration: estimatedDuration,
+        },
+      });
+      if (!order) {
+        return {
+          data: null,
+          ok: false,
+          status: 400,
+          error: 'Failed to create order',
+        };
+      }
+      return {
+        data: null,
+        ok: true,
+        status: 200,
+        error: '',
+      };
     } catch (error) {
       throw new HttpException(
         {
@@ -46,7 +71,7 @@ export class OrdersService {
           error: 'Failed to create order',
           additionalInfo: {
             details: error.message,
-            code: 'ORDER_CREATE_ERROR'
+            code: 'ORDER_CREATE_ERROR',
           },
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -54,146 +79,107 @@ export class OrdersService {
     }
   }
 
-  // async getUpcomingOrders(fixerId: string) {
-  //   try {
-  //     const upcomingOrders = await this.prisma.fixerUser.findFirst({
-  //       where: {
-  //         userId: fixerId,
-  //       },
-  //       select: {
-  //         orders: {
-  //           where: {
-  //             status: {
-  //               in: ['OPEN', 'PENDING'],
-  //             },
-  //           },
-  //           include: {
-  //             purchase: {
-  //               include: {
-  //                 issue: true,
-  //                 items: true,
-  //               },
-  //             },
-  //             fixers: {
-  //               select: {
-  //                 id: true,
-  //                 uuid: true,
-  //                 userId: true,
-  //                 isVerified: true,
-  //                 name: true,
-  //                 phone: true,
-  //                 profileImage: true,
-  //                 professionalLicense: true,
-  //                 stats: {
-  //                   select: {
-  //                     averageRating: true,
-  //                     completedJobs: true,
-  //                   },
-  //                 },
-  //               },
-  //             },
-  //             fixersNotes: true,
-  //           },
-  //           orderBy: {
-  //             startDate: 'asc',
-  //           },
-  //         },
-  //       },
-  //     });
-
-  //     return {
-  //       data: upcomingOrders,
-  //       ok: true,
-  //       status: 200,
-  //       error: '',
-  //     };
-  //   } catch (error) {
-  //     return { data: {}, ok: false, status: 500, error: 'An error' };
-  //   }
-  // }
-
-  // async getActiveOrder(fixerId: string) {
-  //   try {
-  //     const activeOrder = await this.prisma.fixerUser.findFirst({
-  //       where: {
-  //         userId: fixerId,
-  //       },
-  //       select: {
-  //         activeOrder: {
-  //           include: {
-  //             order: {
-  //               include: {
-  //                 purchase: {
-  //                   include: {
-  //                     issue: true,
-  //                     items: true,
-  //                   },
-  //                 },
-  //               },
-  //             },
-  //             fixers: true,
-  //             fixersNotes: true,
-  //           },
-  //         },
-  //       },
-  //     });
-
-  //     return {
-  //       data: activeOrder,
-  //       ok: true,
-  //       status: 200,
-  //       error: '',
-  //     };
-  //   } catch (error) {
-  //     return { data: {}, ok: false, status: 500, error: 'An error' };
-  //   }
-  // }
-
-  // async getCompletedOrders(fixerId: string) {
-  //   try {
-  //     const completedOrders = await this.prisma.fixerUser.findFirst({
-  //       where: {
-  //         userId: fixerId,
-  //       },
-  //       select: {
-  //         orders: {
-  //           where: {
-  //             status: 'FINISHED',
-  //           },
-  //           include: {
-  //             purchase: {
-  //               include: {
-  //                 issue: true,
-  //                 items: true,
-  //               },
-  //             },
-  //             fixers: true,
-  //             fixersNotes: true,
-  //           },
-  //         },
-  //       },
-  //     });
-
-  //     return {
-  //       data: completedOrders,
-  //       ok: true,
-  //       status: 200,
-  //       error: '',
-  //     };
-  //   } catch (error) {
-  //     return { data: {}, ok: false, status: 500, error: 'An error' };
-  //   }
-  // }
-
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async getClientActiveOrders(clientId: number) {
+    try {
+      const orders = await this.prisma.orderOperator.findMany({
+        where: {
+          purchase: {
+            clientId: clientId,
+          },
+          AND: [
+            {
+              status: 'PENDING',
+            },
+            {
+              status: 'ACTIVE',
+            },
+          ],
+        },
+        include: {
+          purchase: {
+            include: {
+              items: true,
+              malfunctions: true,
+            },
+          },
+        },
+      });
+      if (!orders) {
+        return {
+          data: null,
+          ok: false,
+          status: 400,
+          error: 'No active orders',
+        };
+      }
+      return {
+        data: orders,
+        ok: true,
+        status: 200,
+        error: '',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: 'Failed to get client active orders',
+          additionalInfo: {
+            details: error.message,
+            code: 'ORDER_GET_CLIENT_ACTIVE_ORDERS_ERROR',
+          },
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
+  async getClientFinishedOrders(clientId: number) {
+    try {
+      const orders = await this.prisma.orderOperator.findMany({
+        where: {
+          purchase: {
+            clientId: clientId,
+          },
+          status: {
+            in: ['FINISHED', 'CLOSED'],
+          },
+        },
+        include: {
+          purchase: {
+            include: {
+              items: true,
+              malfunctions: true,
+            },
+          },
+        },
+      });
+      if (!orders) {
+        return {
+          data: null,
+          ok: false,
+          status: 400,
+          error: 'No finished orders',
+        };
+      }
+      return {
+        data: orders,
+        ok: true,
+        status: 200,
+        error: '',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: 'Failed to get client finished orders',
+          additionalInfo: {
+            details: error.message,
+            code: 'ORDER_GET_CLIENT_FINISHED_ORDERS_ERROR',
+          },
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
-  }
 }

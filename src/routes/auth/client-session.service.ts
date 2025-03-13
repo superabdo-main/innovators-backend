@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ClientLoginDto, ClientSignupDto } from './dto/client-auth.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'nestjs-prisma';
+import { generateUUID } from 'src/utils/uuid';
 
 @Injectable()
 export class ClientSessionService {
@@ -33,6 +34,7 @@ export class ClientSessionService {
       // Create user
       const user = await this.prisma.clientUser.create({
         data: {
+          uuid: generateUUID(),
           email: dto.email,
           password: hashedPassword,
           name: dto.name,
@@ -92,6 +94,7 @@ export class ClientSessionService {
       delete user.password;
       return { data: { user, token }, ok: true, status: 201, error: '' };
     } catch (error) {
+      console.log(error);
       return {
         data: {},
         ok: false,
@@ -140,6 +143,38 @@ export class ClientSessionService {
       });
     } catch (error) {
       throw new UnauthorizedException(`Failed to create session ${error}`);
+    }
+  }
+
+  // Update FCM token for a client session
+  async updateFcmToken(userId: number, deviceId: string, fcmToken: string) {
+    try {
+      // Update FCM token for the specific device
+      const client = await this.prisma.clientSession.updateMany({
+        where: {
+          userId: userId,
+          deviceId: deviceId,
+          isActive: true,
+        },
+        data: {
+          fcmToken: fcmToken,
+          lastActivity: new Date(),
+        },
+      });
+      return { 
+        data: { success: true }, 
+        ok: true, 
+        status: 200, 
+        error: '' 
+      };
+    } catch (error) {
+      console.error('Failed to update FCM token:', error);
+      return { 
+        data: { success: false }, 
+        ok: false, 
+        status: 500, 
+        error: 'Failed to update FCM token' 
+      };
     }
   }
 

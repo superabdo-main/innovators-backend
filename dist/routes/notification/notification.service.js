@@ -22,11 +22,10 @@ let NotificationService = NotificationService_1 = class NotificationService {
         try {
             const notification = await this.prisma.notification.create({
                 data: {
-                    userId: notificationData.userId,
-                    type: notificationData.type,
+                    recipientId: notificationData.userId,
                     title: notificationData.title,
-                    message: notificationData.message,
-                    data: notificationData.data || {},
+                    body: notificationData.message,
+                    data: JSON.stringify(notificationData.data),
                 },
             });
             return notification;
@@ -40,8 +39,8 @@ let NotificationService = NotificationService_1 = class NotificationService {
         try {
             return await this.prisma.notification.findMany({
                 where: {
-                    userId,
-                    read: false,
+                    recipientId: userId,
+                    isRead: false,
                 },
                 orderBy: {
                     createdAt: 'desc',
@@ -57,7 +56,7 @@ let NotificationService = NotificationService_1 = class NotificationService {
         try {
             return await this.prisma.notification.update({
                 where: { id: notificationId },
-                data: { read: true },
+                data: { isRead: true },
             });
         }
         catch (error) {
@@ -68,8 +67,8 @@ let NotificationService = NotificationService_1 = class NotificationService {
     async markAllAsRead(userId) {
         try {
             return await this.prisma.notification.updateMany({
-                where: { userId, read: false },
-                data: { read: true },
+                where: { recipientId: userId, isRead: false },
+                data: { isRead: true },
             });
         }
         catch (error) {
@@ -93,13 +92,13 @@ let NotificationService = NotificationService_1 = class NotificationService {
             const skip = (page - 1) * limit;
             const [notifications, total] = await Promise.all([
                 this.prisma.notification.findMany({
-                    where: { userId },
+                    where: { recipientId: userId },
                     orderBy: { createdAt: 'desc' },
                     skip,
                     take: limit,
                 }),
                 this.prisma.notification.count({
-                    where: { userId },
+                    where: { recipientId: userId },
                 }),
             ]);
             return {

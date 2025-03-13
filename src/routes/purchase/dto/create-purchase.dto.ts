@@ -15,7 +15,8 @@ export class CreatePurchaseDto {
 }
 
 export class CartItem {
-  itemUUID?: string;
+  id?: number;
+  itemUUID?: number;
   service: MainServicesDto;
   serviceId: number;
   price: number;
@@ -25,7 +26,8 @@ export class CartItem {
 }
 
 export class CartMalfunction {
-  itemUUID?: string;
+  id?: number;
+  itemUUID?: number;
   service: MainServicesDto;
   serviceId: number;
   description: string;

@@ -8,5 +8,15 @@ export declare class PurchaseController {
         ok: boolean;
         status: number;
         error: string;
+    } | {
+        data: {
+            data: any;
+            ok: boolean;
+            status: number;
+            error: string;
+        };
+        ok: boolean;
+        status: number;
+        error: string;
     }>;
 }

@@ -10,7 +10,7 @@ export class PurchaseController {
 
   @Post()
   @HttpCode(201)
-  @UseGuards(ClientJwtGuard)
+  // @UseGuards(ClientJwtGuard)
   create(@Body() createPurchaseDto: CreatePurchaseDto, @Headers('authorization') auth: string) {
     const token = auth.replace('Bearer ', '');
     return this.purchaseService.create(token, createPurchaseDto);

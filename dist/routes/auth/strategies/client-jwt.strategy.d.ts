@@ -7,14 +7,14 @@ export declare class ClientJwtStrategy extends ClientJwtStrategy_base {
         sub: number;
         email: string;
     }): Promise<{
-        createdAt: Date;
-        updatedAt: Date;
         id: number;
         name: string | null;
         uuid: string;
         password: string | null;
         phone: string | null;
         email: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }
 export {};

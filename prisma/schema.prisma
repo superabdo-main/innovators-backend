@@ -15,16 +15,51 @@ datasource db {
 }
 
 model ClientUser {
-  id        Int             @id @default(autoincrement())
-  uuid      String          @default(uuid())
-  name      String?
-  email     String          @unique
-  phone     String?
-  password  String?
-  purchases Purchase[]
-  sessions  ClientSession[]
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id                Int                @id @default(autoincrement())
+  uuid              String             @default(uuid())
+  name              String?
+  email             String             @unique
+  phone             String?
+  password          String?
+  purchases         Purchase[]
+  sessions          ClientSession[]
+  coupons           Coupon[]
+  couponRedemptions CouponRedemption[]
+  notifications     Notification[]     // Add relation to Notification model
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+model Coupon {
+  id                Int                @id @default(autoincrement())
+  code              String             @unique
+  description       String?
+  discountType      DiscountType
+  discountValue     Float
+  minOrderValue     Float              @default(0)
+  maxDiscountAmount Float?
+  startDate         DateTime
+  endDate           DateTime
+  usageLimit        Int? // Maximum number of times this coupon can be used (null = unlimited)
+  usageCount        Int                @default(0)
+  isActive          Boolean            @default(true)
+  isGlobal          Boolean            @default(false) // If true, it's available to all clients
+  clients           ClientUser[] // For client-specific coupons
+  redemptions       CouponRedemption[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+model CouponRedemption {
+  id             Int         @id @default(autoincrement())
+  coupon         Coupon      @relation(fields: [couponId], references: [id])
+  couponId       Int
+  client         ClientUser? @relation(fields: [clientId], references: [id])
+  clientId       Int?
+  purchase       Purchase?   @relation(fields: [purchaseId], references: [id])
+  purchaseId     Int?        @unique
+  discountAmount Float
+  redeemedAt     DateTime    @default(now())
 }
 
 model FixerUser {
@@ -116,25 +151,28 @@ model ActiveOrderOperator {
 }
 
 model OrderOperator {
-  id                       Int                  @id @default(autoincrement())
-  purchase                 Purchase?
-  activeOrder              ActiveOrderOperator?
-  fixers                   FixerUser[]
-  leader                   FixerUser            @relation(fields: [leaderId], references: [id], name: "OrderOperator_leader")
-  leaderId                 Int
-  adminNotes               String?
-  fixersNotes              FixerOrderNote[]
-  beginWork                Boolean?
-  clientApproveToBeginWork Boolean?
-  status                   OperationStatus      @default(PENDING)
-  closed                   Boolean              @default(false)
-  clientRate               Float?
-  clientNotes              String?
-  maintenanceDuration      Float?
-  startTime                DateTime?
-  endTime                  DateTime?
-  createdAt                DateTime             @default(now())
-  updatedAt                DateTime             @updatedAt
+  id                           Int                  @id @default(autoincrement())
+  purchase                     Purchase?
+  activeOrder                  ActiveOrderOperator?
+  fixers                       FixerUser[]
+  leader                       FixerUser?           @relation(fields: [leaderId], references: [id], name: "OrderOperator_leader")
+  leaderId                     Int?
+  adminNotes                   String?
+  fixersNotes                  FixerOrderNote[]
+  beginWork                    Boolean?
+  beginWorkTime                DateTime?
+  clientApproveToBeginWork     Boolean?
+  clientApproveToBeginWorkTime DateTime?
+  status                       OperationStatus      @default(PENDING)
+  closed                       Boolean              @default(false)
+  clientRate                   Float?
+  clientNotes                  String?
+  maintenanceDuration          Float?
+  maintenanceStartDate         DateTime?
+  startTime                    DateTime?
+  endTime                      DateTime?
+  createdAt                    DateTime             @default(now())
+  updatedAt                    DateTime             @updatedAt
 }
 
 model FixerOrderNote {
@@ -150,27 +188,28 @@ model FixerOrderNote {
 }
 
 model Purchase {
-  id              Int               @id @default(autoincrement())
-  client          ClientUser?       @relation(fields: [clientId], references: [id])
-  clientId        Int?
-  fullname        String?
-  address         String?
-  phone           String?
-  maintenanceDate DateTime?
-  items           CartItem[]
-  malfunctions    CartMalfunction[]
-  subTotal        Float?            @default(0)
-  discount        Float?            @default(0)
-  total           Float?            @default(0)
-  orderOperator   OrderOperator?    @relation(fields: [orderOperatorId], references: [id])
-  orderOperatorId Int?              @unique
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id               Int               @id @default(autoincrement())
+  client           ClientUser        @relation(fields: [clientId], references: [id])
+  clientId         Int
+  fullname         String?
+  address          String?
+  phone            String?
+  maintenanceDate  DateTime?
+  items            CartItem[]
+  malfunctions     CartMalfunction[]
+  subTotal         Float?            @default(0)
+  discount         Float?            @default(0)
+  total            Float?            @default(0)
+  orderOperator    OrderOperator?    @relation(fields: [orderOperatorId], references: [id])
+  orderOperatorId  Int?              @unique
+  couponRedemption CouponRedemption?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model CartItem {
   id         Int          @id @default(autoincrement())
-  itemUUID   String?
+  itemUUID   Int?
   service    MainServices @relation(fields: [serviceId], references: [id])
   serviceId  Int
   price      Float?
@@ -183,7 +222,7 @@ model CartItem {
 
 model CartMalfunction {
   id          Int          @id @default(autoincrement())
-  itemUUID    String?
+  itemUUID    Int?
   service     MainServices @relation(fields: [serviceId], references: [id])
   serviceId   Int
   description String?
@@ -195,18 +234,19 @@ model CartMalfunction {
 }
 
 model MainServices {
-  id               Int               @id @default(autoincrement())
-  serviceName      String?
-  serviceId        String?
-  enabled          Boolean?          @default(false)
-  isOpen           Boolean?          @default(true)
-  imageUrl         String?
-  sortNumber       Int?              @default(0)
-  subscribedFixers FixerUser[]
-  cartItem         CartItem[]
-  cartMalfunction  CartMalfunction[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id                     Int                      @id @default(autoincrement())
+  serviceName            String?
+  serviceId              String?
+  enabled                Boolean?                 @default(false)
+  isOpen                 Boolean?                 @default(true)
+  imageUrl               String?
+  sortNumber             Int?                     @default(0)
+  subscribedFixers       FixerUser[]
+  cartItem               CartItem[]
+  cartMalfunction        CartMalfunction[]
+  playStationFastatItems PlayStationFastatItems[]
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
 }
 
 // PLAYSTATION SERVICE
@@ -222,27 +262,29 @@ model PlayStationFastatCategory {
 }
 
 model PlayStationFastatItems {
-  id              Int                         @id @default(autoincrement())
+  id              Int                        @id @default(autoincrement())
   name            String?
-  sku             PlayStationFastatItemsSKU[]
-  active          Boolean?                    @default(false)
-  maintenanceTime Int?                        @default(0)
-  category        PlayStationFastatCategory?  @relation(fields: [categoryId], references: [id])
+  active          Boolean?                   @default(false)
+  maintenanceTime Int?                       @default(0)
+  category        PlayStationFastatCategory? @relation(fields: [categoryId], references: [id])
   categoryId      Int?
-  sortNumber      Int?                        @default(0)
-  createdAt       DateTime                    @default(now())
-  updatedAt       DateTime                    @updatedAt
+  service         MainServices?              @relation(fields: [serviceId], references: [id])
+  serviceId       Int?
+  sortNumber      Int?                       @default(0)
+  sku             PlayStationFastatItemsSKU  @relation(fields: [skuId], references: [id])
+  skuId           Int
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
 }
 
 model PlayStationFastatItemsSKU {
-  id        Int                     @id @default(autoincrement())
-  stock     Int?                    @default(0)
-  discount  Float?                  @default(0)
-  price     Float?                  @default(0)
-  product   PlayStationFastatItems? @relation(fields: [productId], references: [id])
-  productId Int?
-  createdAt DateTime                @default(now())
-  updatedAt DateTime                @updatedAt
+  id        Int                      @id @default(autoincrement())
+  stock     Int?                     @default(0)
+  discount  Float?                   @default(0)
+  price     Float?                   @default(0)
+  createdAt DateTime                 @default(now())
+  updatedAt DateTime                 @updatedAt
+  items     PlayStationFastatItems[]
 }
 
 model PlayStationMalfunctionMainCategory {
@@ -305,6 +347,7 @@ model VersionRelease {
 model ClientSession {
   id           Int        @id @default(autoincrement())
   token        String     @unique
+  fcmToken     String?
   client       ClientUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int
   deviceId     String // Unique device identifier
@@ -338,17 +381,6 @@ model Session {
   @@index([token])
 }
 
-model Notification {
-  id        Int      @id @default(autoincrement())
-  userId    Int // Can be either FixerUser id or Auth id
-  type      String // e.g., 'ORDER_ASSIGNMENT', 'ORDER_STATUS_CHANGE', etc.
-  title     String
-  message   String
-  data      Json? // Additional data in JSON format
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
 
 model MaintenanceTimeTraining {
   id             Int      @id @default(autoincrement())
@@ -362,16 +394,25 @@ model MaintenanceTimeTraining {
   @@index([itemIds])
 }
 
-model ErrorLog {
+model ImagesBanner {
   id          Int      @id @default(autoincrement())
-  statusCode  Int
-  message     String
-  stack       String?  @db.Text
-  path        String
-  method      String
-  timestamp   DateTime @default(now())
-  userId      String?  // Optional: to track which user encountered the error
-  metadata    Json?    // Additional error context
+  imageUrl    String
+  redirectUrl String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ErrorLog {
+  id         Int      @id @default(autoincrement())
+  statusCode Int
+  message    String
+  stack      String?  @db.Text
+  path       String
+  method     String
+  timestamp  DateTime @default(now())
+  userId     String? // Optional: to track which user encountered the error
+  metadata   Json? // Additional error context
 }
 
 enum OperationStatus {
@@ -382,6 +423,11 @@ enum OperationStatus {
   CLOSED
 }
 
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
 // Provide a complete implementation guide for 
 // sending push notifications to a specific Flutter
 // client id in innovators app using a NestJS backend. 
@@ -389,3 +435,31 @@ enum OperationStatus {
 // configure Firebase Admin in NestJS, 
 // and create an API endpoint to send notifications. 
 // Ensure the message content is 'Please approve the order.'
+
+model Notification {
+  id              Int           @id @default(autoincrement())
+  uuid            String        @default(uuid())
+  title           String
+  body            String
+  data            String?       // JSON data for additional payload
+  imageUrl        String?       // Optional image URL for rich notifications
+  isRead          Boolean       @default(false)
+  isGlobal        Boolean       @default(false) // Whether this is a global notification
+  recipientId     Int?          // Optional: specific user this notification is for
+  recipient       ClientUser?   @relation(fields: [recipientId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Firebase-specific fields
+  fcmToken        String?       // Store user's FCM token
+  sendStatus      SendStatus    @default(PENDING)
+  sendAttempts    Int           @default(0)
+  lastAttemptAt   DateTime?
+  sentAt          DateTime?
+}
+
+enum SendStatus {
+  PENDING
+  SENT
+  FAILED
+}

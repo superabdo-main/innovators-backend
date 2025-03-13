@@ -5,14 +5,14 @@ export declare class ServicesController {
     getMainServices(): Promise<{
         data: {
             id: number;
-            serviceName: string | null;
-            serviceId: string | null;
-            enabled: boolean | null;
-            isOpen: boolean | null;
-            imageUrl: string | null;
-            sortNumber: number | null;
             createdAt: Date;
             updatedAt: Date;
+            imageUrl: string | null;
+            serviceId: string | null;
+            sortNumber: number | null;
+            serviceName: string | null;
+            enabled: boolean | null;
+            isOpen: boolean | null;
         }[];
         ok: boolean;
         status: number;

@@ -20,13 +20,9 @@ exports.AuthModule = AuthModule;
 exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            jwt_1.JwtModule.registerAsync({
-                useFactory: async () => ({
-                    secret: process.env.JWT_SECRET || 'secret',
-                    signOptions: {
-                        expiresIn: '30d',
-                    },
-                }),
+            jwt_1.JwtModule.register({
+                secret: process.env.JWT_SECRET,
+                signOptions: { expiresIn: '30d' },
             }),
         ],
         controllers: [client_session_controller_1.ClientSessionController, fixer_session_controller_1.FixerSessionController],

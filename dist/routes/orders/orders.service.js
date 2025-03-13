@@ -12,14 +12,48 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrdersService = void 0;
 const common_1 = require("@nestjs/common");
 const nestjs_prisma_1 = require("nestjs-prisma");
-const fixer_service_1 = require("../fixer/fixer.service");
+const fixer_assignment_service_1 = require("../fixer/fixer-assignment.service");
 let OrdersService = class OrdersService {
-    constructor(prisma, fixerService) {
+    constructor(prisma, assignmentService) {
         this.prisma = prisma;
-        this.fixerService = fixerService;
+        this.assignmentService = assignmentService;
     }
-    async create(purchaseId, startDate) {
+    async create(purchaseId, servicesIds, workStartDate, estimatedDuration) {
         try {
+            const fixers = await this.assignmentService.findAvailableFixers(servicesIds, new Date(workStartDate), estimatedDuration);
+            const order = await this.prisma.orderOperator.create({
+                data: {
+                    leaderId: fixers.suggestedFixer ? fixers.suggestedFixer.fixer.id : undefined,
+                    fixers: fixers.suggestedFixer ? {
+                        connect: fixers.suggestedFixer
+                            ? {
+                                id: fixers.suggestedFixer.fixer.id,
+                            }
+                            : undefined,
+                    } : undefined,
+                    maintenanceStartDate: new Date(workStartDate),
+                    purchase: {
+                        connect: {
+                            id: purchaseId,
+                        },
+                    },
+                    maintenanceDuration: estimatedDuration,
+                },
+            });
+            if (!order) {
+                return {
+                    data: null,
+                    ok: false,
+                    status: 400,
+                    error: 'Failed to create order',
+                };
+            }
+            return {
+                data: null,
+                ok: true,
+                status: 200,
+                error: '',
+            };
         }
         catch (error) {
             throw new common_1.HttpException({
@@ -27,25 +61,113 @@ let OrdersService = class OrdersService {
                 error: 'Failed to create order',
                 additionalInfo: {
                     details: error.message,
-                    code: 'ORDER_CREATE_ERROR'
+                    code: 'ORDER_CREATE_ERROR',
                 },
             }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    findOne(id) {
-        return `This action returns a #${id} order`;
+    async getClientActiveOrders(clientId) {
+        try {
+            const orders = await this.prisma.orderOperator.findMany({
+                where: {
+                    purchase: {
+                        clientId: clientId,
+                    },
+                    AND: [
+                        {
+                            status: 'PENDING',
+                        },
+                        {
+                            status: 'ACTIVE',
+                        },
+                    ],
+                },
+                include: {
+                    purchase: {
+                        include: {
+                            items: true,
+                            malfunctions: true,
+                        },
+                    },
+                },
+            });
+            if (!orders) {
+                return {
+                    data: null,
+                    ok: false,
+                    status: 400,
+                    error: 'No active orders',
+                };
+            }
+            return {
+                data: orders,
+                ok: true,
+                status: 200,
+                error: '',
+            };
+        }
+        catch (error) {
+            throw new common_1.HttpException({
+                status: common_1.HttpStatus.INTERNAL_SERVER_ERROR,
+                error: 'Failed to get client active orders',
+                additionalInfo: {
+                    details: error.message,
+                    code: 'ORDER_GET_CLIENT_ACTIVE_ORDERS_ERROR',
+                },
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-    update(id, updateOrderDto) {
-        return `This action updates a #${id} order`;
-    }
-    remove(id) {
-        return `This action removes a #${id} order`;
+    async getClientFinishedOrders(clientId) {
+        try {
+            const orders = await this.prisma.orderOperator.findMany({
+                where: {
+                    purchase: {
+                        clientId: clientId,
+                    },
+                    status: {
+                        in: ['FINISHED', 'CLOSED'],
+                    },
+                },
+                include: {
+                    purchase: {
+                        include: {
+                            items: true,
+                            malfunctions: true,
+                        },
+                    },
+                },
+            });
+            if (!orders) {
+                return {
+                    data: null,
+                    ok: false,
+                    status: 400,
+                    error: 'No finished orders',
+                };
+            }
+            return {
+                data: orders,
+                ok: true,
+                status: 200,
+                error: '',
+            };
+        }
+        catch (error) {
+            throw new common_1.HttpException({
+                status: common_1.HttpStatus.INTERNAL_SERVER_ERROR,
+                error: 'Failed to get client finished orders',
+                additionalInfo: {
+                    details: error.message,
+                    code: 'ORDER_GET_CLIENT_FINISHED_ORDERS_ERROR',
+                },
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 };
 exports.OrdersService = OrdersService;
 exports.OrdersService = OrdersService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [nestjs_prisma_1.PrismaService,
-        fixer_service_1.FixerService])
+        fixer_assignment_service_1.FixerAssignmentService])
 ], OrdersService);
 //# sourceMappingURL=orders.service.js.map

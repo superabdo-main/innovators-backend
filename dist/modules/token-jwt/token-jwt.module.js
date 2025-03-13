@@ -16,8 +16,19 @@ let TokenJwtModule = class TokenJwtModule {
 exports.TokenJwtModule = TokenJwtModule;
 exports.TokenJwtModule = TokenJwtModule = __decorate([
     (0, common_1.Module)({
+        imports: [
+            jwt_1.JwtModule.registerAsync({
+                useFactory: async () => ({
+                    secret: process.env.JWT_SECRET || 'secret',
+                    signOptions: {
+                        expiresIn: '30d',
+                    },
+                }),
+            }),
+        ],
         controllers: [token_jwt_controller_1.TokenJwtController],
-        providers: [token_jwt_service_1.TokenJwtService, jwt_1.JwtService],
+        providers: [token_jwt_service_1.TokenJwtService],
+        exports: [token_jwt_service_1.TokenJwtService],
     })
 ], TokenJwtModule);
 //# sourceMappingURL=token-jwt.module.js.map

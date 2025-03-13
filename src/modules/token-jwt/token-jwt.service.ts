@@ -24,8 +24,10 @@ export class TokenJwtService {
           client: true,
         },
       });
+      // console.log(session);
       return session.client
     } catch (error) {
+      // console.log(error);
       return null
     }
   }

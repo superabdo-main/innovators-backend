@@ -25,11 +25,10 @@ export class NotificationService {
     try {
       const notification = await this.prisma.notification.create({
         data: {
-          userId: notificationData.userId,
-          type: notificationData.type,
+          recipientId: notificationData.userId,
           title: notificationData.title,
-          message: notificationData.message,
-          data: notificationData.data || {},
+          body: notificationData.message,
+          data: JSON.stringify(notificationData.data),
         },
       });
 
@@ -47,8 +46,8 @@ export class NotificationService {
     try {
       return await this.prisma.notification.findMany({
         where: {
-          userId,
-          read: false,
+          recipientId: userId,
+          isRead: false,
         },
         orderBy: {
           createdAt: 'desc',
@@ -64,7 +63,7 @@ export class NotificationService {
     try {
       return await this.prisma.notification.update({
         where: { id: notificationId },
-        data: { read: true },
+        data: { isRead: true },
       });
     } catch (error) {
       this.logger.error('Error marking notification as read:', error);
@@ -75,8 +74,8 @@ export class NotificationService {
   async markAllAsRead(userId: number) {
     try {
       return await this.prisma.notification.updateMany({
-        where: { userId, read: false },
-        data: { read: true },
+        where: { recipientId: userId, isRead: false },
+        data: { isRead: true },
       });
     } catch (error) {
       this.logger.error('Error marking all notifications as read:', error);
@@ -101,13 +100,13 @@ export class NotificationService {
 
       const [notifications, total] = await Promise.all([
         this.prisma.notification.findMany({
-          where: { userId },
+          where: { recipientId: userId },
           orderBy: { createdAt: 'desc' },
           skip,
           take: limit,
         }),
         this.prisma.notification.count({
-          where: { userId },
+          where: { recipientId: userId },
         }),
       ]);
 

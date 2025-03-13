@@ -5,13 +5,13 @@ export declare class TokenJwtService {
     private jwtService;
     constructor(prisma: PrismaService, jwtService: JwtService);
     decodeToken(token: string): Promise<{
-        createdAt: Date;
-        updatedAt: Date;
         id: number;
         name: string | null;
         uuid: string;
         password: string | null;
         phone: string | null;
         email: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }

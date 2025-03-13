@@ -351,11 +351,10 @@ export class FixerAssignmentService {
       // Create notification for the assigned fixer
       await this.prisma.notification.create({
         data: {
-          userId: fixerId,
-          type: 'ORDER_ASSIGNMENT',
+          recipientId: fixerId,
           title: 'New Order Assignment',
-          message: `You have been assigned to order #${orderId}`,
-          data: { orderId },
+          body: `You have been assigned to order #${orderId}`,
+          data: JSON.stringify({ orderId }),
         },
       });
 

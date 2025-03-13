@@ -37,9 +37,9 @@ export declare class FixerService {
                 completedJobs: number | null;
             };
             id: number;
+            name: string | null;
             userId: string | null;
             uuid: string;
-            name: string | null;
             phone: string | null;
             email: string | null;
             location: string | null;

@@ -6,39 +6,4 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-
-  @Post('/create')
-  create(@Body() data: any) {
-    return this.ordersService.create(data.purchaseId, data.startDate);
-  }
-
-  // @Get('upcoming/:fixerId')
-  // getUpcomingOrders(@Param('fixerId') fixerId: string) {
-  //   return this.ordersService.getUpcomingOrders(fixerId);
-  // }
-
-  // @Get('active/:fixerId')
-  // getActiveOrder(@Param('fixerId') fixerId: string) {
-  //   return this.ordersService.getActiveOrder(fixerId);
-  // }
-
-  // @Get('upcoming/:fixerId')
-  // getCompletedOrders(@Param('fixerId') fixerId: string) {
-  //   return this.ordersService.getCompletedOrders(fixerId);
-  // }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.update(+id, updateOrderDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ordersService.remove(+id);
-  }
 }

@@ -11,13 +11,14 @@ const common_1 = require("@nestjs/common");
 const orders_service_1 = require("./orders.service");
 const orders_controller_1 = require("./orders.controller");
 const fixer_service_1 = require("../fixer/fixer.service");
+const fixer_assignment_service_1 = require("../fixer/fixer-assignment.service");
 let OrdersModule = class OrdersModule {
 };
 exports.OrdersModule = OrdersModule;
 exports.OrdersModule = OrdersModule = __decorate([
     (0, common_1.Module)({
         controllers: [orders_controller_1.OrdersController],
-        providers: [orders_service_1.OrdersService, fixer_service_1.FixerService],
+        providers: [orders_service_1.OrdersService, fixer_assignment_service_1.FixerAssignmentService, fixer_service_1.FixerService],
     })
 ], OrdersModule);
 //# sourceMappingURL=orders.module.js.map

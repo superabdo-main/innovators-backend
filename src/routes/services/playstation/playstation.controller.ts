@@ -3,7 +3,7 @@ import { PlaystationService } from './playstation.service';
 import { CreatePlaystationDto } from './dto/create-playstation.dto';
 import { UpdatePlaystationDto } from './dto/update-playstation.dto';
 
-@Controller('playstation')
+@Controller('services/playstation')
 export class PlaystationController {
   constructor(private readonly playstationService: PlaystationService) {}
 
@@ -12,10 +12,10 @@ export class PlaystationController {
     return this.playstationService.create(createPlaystationDto);
   }
 
-  // @Get('/fastat-service-options')
-  // async getFastatServiceOptions() {
-  //   return await this.playstationService.getFastatServiceOptions();
-  // }
+  @Get('/fastat')
+  async getFastatServiceOptions() {
+    return await this.playstationService.getFastatServiceOptions();
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

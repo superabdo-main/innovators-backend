@@ -16,7 +16,6 @@ exports.ClientSessionController = void 0;
 const common_1 = require("@nestjs/common");
 const client_session_service_1 = require("./client-session.service");
 const client_auth_dto_1 = require("./dto/client-auth.dto");
-const client_jwt_guard_1 = require("./guards/client-jwt.guard");
 let ClientSessionController = class ClientSessionController {
     constructor(clientSessionService) {
         this.clientSessionService = clientSessionService;
@@ -34,6 +33,9 @@ let ClientSessionController = class ClientSessionController {
     async logout(auth) {
         const token = auth.replace('Bearer ', '');
         return this.clientSessionService.logout(token);
+    }
+    async updateFcmToken(data) {
+        return this.clientSessionService.updateFcmToken(data.userId, data.deviceId, data.fcmToken);
     }
 };
 exports.ClientSessionController = ClientSessionController;
@@ -55,7 +57,6 @@ __decorate([
 ], ClientSessionController.prototype, "login", null);
 __decorate([
     (0, common_1.Post)('session/check'),
-    (0, common_1.UseGuards)(client_jwt_guard_1.ClientJwtGuard),
     (0, common_1.HttpCode)(200),
     __param(0, (0, common_1.Headers)('authorization')),
     __metadata("design:type", Function),
@@ -64,13 +65,20 @@ __decorate([
 ], ClientSessionController.prototype, "checkSession", null);
 __decorate([
     (0, common_1.Post)('logout'),
-    (0, common_1.UseGuards)(client_jwt_guard_1.ClientJwtGuard),
     (0, common_1.HttpCode)(200),
     __param(0, (0, common_1.Headers)('authorization')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ClientSessionController.prototype, "logout", null);
+__decorate([
+    (0, common_1.Post)('fcm-token'),
+    (0, common_1.HttpCode)(200),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ClientSessionController.prototype, "updateFcmToken", null);
 exports.ClientSessionController = ClientSessionController = __decorate([
     (0, common_1.Controller)('auth/client'),
     __metadata("design:paramtypes", [client_session_service_1.ClientSessionService])

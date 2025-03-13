@@ -13,7 +13,8 @@ export declare class CreatePurchaseDto {
     total?: number;
 }
 export declare class CartItem {
-    itemUUID?: string;
+    id?: number;
+    itemUUID?: number;
     service: MainServicesDto;
     serviceId: number;
     price: number;
@@ -22,7 +23,8 @@ export declare class CartItem {
     updatedAt?: Date;
 }
 export declare class CartMalfunction {
-    itemUUID?: string;
+    id?: number;
+    itemUUID?: number;
     service: MainServicesDto;
     serviceId: number;
     description: string;
