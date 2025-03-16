@@ -19,7 +19,7 @@ export class OrdersService {
     try {
       const fixers = await this.assignmentService.findAvailableFixers(
         servicesIds,
-        new Date(workStartDate),
+        workStartDate,
         estimatedDuration,
       );
       // if no avaible fixers send notification to with next available time and send back to client
@@ -41,13 +41,15 @@ export class OrdersService {
                 }
               : undefined,
           } : undefined,
-          maintenanceStartDate: new Date(workStartDate),
+          maintenanceStartDate: workStartDate,
           purchase: {
             connect: {
               id: purchaseId,
             },
           },
           maintenanceDuration: estimatedDuration,
+          startTime: workStartDate,
+          endTime: new Date(workStartDate.getTime() + estimatedDuration * 60000),
         },
       });
       if (!order) {
@@ -86,14 +88,9 @@ export class OrdersService {
           purchase: {
             clientId: clientId,
           },
-          AND: [
-            {
-              status: 'PENDING',
-            },
-            {
-              status: 'ACTIVE',
-            },
-          ],
+          status: {
+            in: ['PENDING', 'ACTIVE'],
+          },
         },
         include: {
           purchase: {
@@ -102,16 +99,23 @@ export class OrdersService {
               malfunctions: true,
             },
           },
+          fixers: true,
+          fixersNotes: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
       });
-      if (!orders) {
+
+      if (!orders || orders.length === 0) {
         return {
-          data: null,
-          ok: false,
-          status: 400,
-          error: 'No active orders',
+          data: [],
+          ok: true,
+          status: 200,
+          error: '',
         };
       }
+
       return {
         data: orders,
         ok: true,
@@ -151,16 +155,23 @@ export class OrdersService {
               malfunctions: true,
             },
           },
+          fixers: true,
+          fixersNotes: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
       });
-      if (!orders) {
+
+      if (!orders || orders.length === 0) {
         return {
-          data: null,
-          ok: false,
-          status: 400,
-          error: 'No finished orders',
+          data: [],
+          ok: true,
+          status: 200,
+          error: '',
         };
       }
+
       return {
         data: orders,
         ok: true,

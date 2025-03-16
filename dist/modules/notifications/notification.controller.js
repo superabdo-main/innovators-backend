@@ -40,6 +40,9 @@ let NotificationController = class NotificationController {
     async markAsRead(id, userId) {
         return this.notificationService.markAsRead(parseInt(id, 10), parseInt(userId, 10));
     }
+    async deleteNotification(id, userId) {
+        return this.notificationService.deleteNotification(parseInt(id, 10), parseInt(userId, 10));
+    }
     async storeToken(data) {
         return { success: true };
     }
@@ -82,6 +85,14 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], NotificationController.prototype, "markAsRead", null);
+__decorate([
+    (0, common_1.Delete)(':id/:userId'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], NotificationController.prototype, "deleteNotification", null);
 __decorate([
     (0, common_1.Post)('token'),
     __param(0, (0, common_1.Body)()),

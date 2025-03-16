@@ -20,7 +20,7 @@ let OrdersService = class OrdersService {
     }
     async create(purchaseId, servicesIds, workStartDate, estimatedDuration) {
         try {
-            const fixers = await this.assignmentService.findAvailableFixers(servicesIds, new Date(workStartDate), estimatedDuration);
+            const fixers = await this.assignmentService.findAvailableFixers(servicesIds, workStartDate, estimatedDuration);
             const order = await this.prisma.orderOperator.create({
                 data: {
                     leaderId: fixers.suggestedFixer ? fixers.suggestedFixer.fixer.id : undefined,
@@ -31,13 +31,15 @@ let OrdersService = class OrdersService {
                             }
                             : undefined,
                     } : undefined,
-                    maintenanceStartDate: new Date(workStartDate),
+                    maintenanceStartDate: workStartDate,
                     purchase: {
                         connect: {
                             id: purchaseId,
                         },
                     },
                     maintenanceDuration: estimatedDuration,
+                    startTime: workStartDate,
+                    endTime: new Date(workStartDate.getTime() + estimatedDuration * 60000),
                 },
             });
             if (!order) {
@@ -73,14 +75,9 @@ let OrdersService = class OrdersService {
                     purchase: {
                         clientId: clientId,
                     },
-                    AND: [
-                        {
-                            status: 'PENDING',
-                        },
-                        {
-                            status: 'ACTIVE',
-                        },
-                    ],
+                    status: {
+                        in: ['PENDING', 'ACTIVE'],
+                    },
                 },
                 include: {
                     purchase: {
@@ -89,14 +86,19 @@ let OrdersService = class OrdersService {
                             malfunctions: true,
                         },
                     },
+                    fixers: true,
+                    fixersNotes: true,
+                },
+                orderBy: {
+                    createdAt: 'desc',
                 },
             });
-            if (!orders) {
+            if (!orders || orders.length === 0) {
                 return {
-                    data: null,
-                    ok: false,
-                    status: 400,
-                    error: 'No active orders',
+                    data: [],
+                    ok: true,
+                    status: 200,
+                    error: '',
                 };
             }
             return {
@@ -135,14 +137,19 @@ let OrdersService = class OrdersService {
                             malfunctions: true,
                         },
                     },
+                    fixers: true,
+                    fixersNotes: true,
+                },
+                orderBy: {
+                    createdAt: 'desc',
                 },
             });
-            if (!orders) {
+            if (!orders || orders.length === 0) {
                 return {
-                    data: null,
-                    ok: false,
-                    status: 400,
-                    error: 'No finished orders',
+                    data: [],
+                    ok: true,
+                    status: 200,
+                    error: '',
                 };
             }
             return {

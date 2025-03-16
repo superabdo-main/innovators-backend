@@ -1,7 +1,11 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { OperationStatus } from '@prisma/client';
-import { FixerScoreDto, FixerAvailabilityResponseDto, FixerWithRelations } from './dto/fixer-assignment.dto';
+import {
+  FixerScoreDto,
+  FixerAvailabilityResponseDto,
+  FixerWithRelations,
+} from './dto/fixer-assignment.dto';
 
 @Injectable()
 export class FixerAssignmentService {
@@ -15,7 +19,14 @@ export class FixerAssignmentService {
   private parseTimeString(timeStr: string): number {
     try {
       const [hours, minutes] = timeStr.split(':').map(Number);
-      if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+      if (
+        isNaN(hours) ||
+        isNaN(minutes) ||
+        hours < 0 ||
+        hours > 23 ||
+        minutes < 0 ||
+        minutes > 59
+      ) {
         throw new Error('Invalid time format');
       }
       return hours * 60 + minutes;
@@ -31,7 +42,11 @@ export class FixerAssignmentService {
     return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   }
 
-  private isTimeInRange(timeToCheck: string, startTime: string, endTime: string): boolean {
+  private isTimeInRange(
+    timeToCheck: string,
+    startTime: string,
+    endTime: string,
+  ): boolean {
     try {
       const checkMinutes = this.parseTimeString(timeToCheck);
       const startMinutes = this.parseTimeString(startTime);
@@ -57,22 +72,41 @@ export class FixerAssignmentService {
     try {
       const workTimeStr = this.formatTimeString(workDateTime);
       const endTimeStr = this.formatTimeString(endDateTime);
+      console.log(2, workTimeStr, endTimeStr);
 
       // First check if the work time falls within the fixer's shift
-      if (!fixer.workShift || !this.isTimeInRange(workTimeStr, fixer.workShift.start, fixer.workShift.end)) {
+      if (
+        !fixer.workShift ||
+        !this.isTimeInRange(
+          workTimeStr,
+          fixer.workShift.start,
+          fixer.workShift.end,
+        )
+      ) {
         return false;
       }
 
       // Check for overlapping orders
       for (const order of fixer.orders) {
-        const orderStart = this.formatTimeString(order.startTime);
-        const orderEndWithBreak = new Date(order.endTime);
-        orderEndWithBreak.setMinutes(orderEndWithBreak.getMinutes() + this.MINIMUM_BREAK_MINUTES);
-        const orderEndWithBreakStr = this.formatTimeString(orderEndWithBreak);
+        if (order.startTime && order.endTime) {
+          console.log(3, order.startTime, order.endTime);
+          const orderStart = this.formatTimeString(order.startTime);
+          console.log(4, orderStart, order.startTime);
+          const orderEndWithBreak = new Date(order.endTime);
+          console.log(5, orderEndWithBreak, order.endTime);
+          orderEndWithBreak.setMinutes(
+            orderEndWithBreak.getMinutes() + this.MINIMUM_BREAK_MINUTES,
+          );
+          console.log(6, orderEndWithBreak, order.endTime);
+          const orderEndWithBreakStr = this.formatTimeString(orderEndWithBreak);
+          console.log(7, orderEndWithBreakStr, orderEndWithBreak);
 
-        if (this.isTimeInRange(workTimeStr, orderStart, orderEndWithBreakStr) ||
-            this.isTimeInRange(endTimeStr, orderStart, orderEndWithBreakStr)) {
-          return false;
+          if (
+            this.isTimeInRange(workTimeStr, orderStart, orderEndWithBreakStr) ||
+            this.isTimeInRange(endTimeStr, orderStart, orderEndWithBreakStr)
+          ) {
+            return false;
+          }
         }
       }
 
@@ -157,17 +191,22 @@ export class FixerAssignmentService {
         this.logger.warn('No potential fixers found for the given services');
         return {
           availableFixers: [],
-          nextAvailableTime: await this.findNextAvailableTime(serviceIds, workDateTime),
+          nextAvailableTime: await this.findNextAvailableTime(
+            serviceIds,
+            workDateTime,
+          ),
         };
       }
 
       // Filter fixers by shift time and availability
       const availableFixers: FixerScoreDto[] = [];
-      
+
       for (const fixer of potentialFixers) {
         // Skip fixers without work shifts
         if (!fixer.workShift?.start || !fixer.workShift?.end) {
-          this.logger.debug(`Skipping fixer ${fixer.id} - no work shift defined`);
+          this.logger.debug(
+            `Skipping fixer ${fixer.id} - no work shift defined`,
+          );
           continue;
         }
 
@@ -175,11 +214,13 @@ export class FixerAssignmentService {
         const isInShift = this.isTimeInRange(
           workTimeStr,
           fixer.workShift.start,
-          fixer.workShift.end
+          fixer.workShift.end,
         );
 
         if (!isInShift) {
-          this.logger.debug(`Skipping fixer ${fixer.id} - work time outside shift hours`);
+          this.logger.debug(
+            `Skipping fixer ${fixer.id} - work time outside shift hours`,
+          );
           continue;
         }
 
@@ -187,7 +228,7 @@ export class FixerAssignmentService {
         const isEndInShift = this.isTimeInRange(
           endTimeStr,
           fixer.workShift.start,
-          fixer.workShift.end
+          fixer.workShift.end,
         );
 
         // For overnight shifts, we need special handling
@@ -197,15 +238,25 @@ export class FixerAssignmentService {
 
         // If it's not an overnight shift and end time is outside shift, skip
         if (!isOvernightShift && !isEndInShift) {
-          this.logger.debug(`Skipping fixer ${fixer.id} - end time outside shift hours`);
+          this.logger.debug(
+            `Skipping fixer ${fixer.id} - end time outside shift hours`,
+          );
           continue;
         }
 
         // Check for availability considering existing orders
-        if (await this.isFixerAvailable(fixer as FixerWithRelations, workDateTime, endDateTime)) {
+        if (
+          await this.isFixerAvailable(
+            fixer as FixerWithRelations,
+            workDateTime,
+            endDateTime,
+          )
+        ) {
           const score = this.calculateFixerScore(fixer as FixerWithRelations);
           availableFixers.push({ fixer, score });
-          this.logger.debug(`Fixer ${fixer.id} is available with score ${score}`);
+          this.logger.debug(
+            `Fixer ${fixer.id} is available with score ${score}`,
+          );
         }
       }
 
@@ -213,7 +264,10 @@ export class FixerAssignmentService {
         this.logger.warn('No available fixers found for the given time slot');
         return {
           availableFixers: [],
-          nextAvailableTime: await this.findNextAvailableTime(serviceIds, workDateTime),
+          nextAvailableTime: await this.findNextAvailableTime(
+            serviceIds,
+            workDateTime,
+          ),
         };
       }
 
@@ -267,23 +321,28 @@ export class FixerAssignmentService {
 
       let earliestTime = startTime;
       let found = false;
-      const maxAttempts = (this.MAX_LOOKUP_HOURS * 60) / this.TIME_INCREMENT_MINUTES;
+      const maxAttempts =
+        (this.MAX_LOOKUP_HOURS * 60) / this.TIME_INCREMENT_MINUTES;
       let attempts = 0;
 
       while (!found && attempts < maxAttempts) {
         for (const fixer of qualifiedFixers) {
-          if (await this.isFixerAvailable(
-            fixer as FixerWithRelations,
-            earliestTime,
-            new Date(earliestTime.getTime() + 60 * 60 * 1000) // 1 hour duration
-          )) {
+          if (
+            await this.isFixerAvailable(
+              fixer as FixerWithRelations,
+              earliestTime,
+              new Date(earliestTime.getTime() + 60 * 60 * 1000), // 1 hour duration
+            )
+          ) {
             found = true;
             break;
           }
         }
 
         if (!found) {
-          earliestTime = new Date(earliestTime.getTime() + this.TIME_INCREMENT_MINUTES * 60 * 1000);
+          earliestTime = new Date(
+            earliestTime.getTime() + this.TIME_INCREMENT_MINUTES * 60 * 1000,
+          );
           attempts++;
         }
       }
@@ -301,7 +360,10 @@ export class FixerAssignmentService {
 
       if (fixer.stats) {
         // Experience score (max 20 points)
-        const experienceScore = Math.min(fixer.stats.monthsOfExperience * 0.5, 20);
+        const experienceScore = Math.min(
+          fixer.stats.monthsOfExperience * 0.5,
+          20,
+        );
         score += experienceScore;
 
         // Rating score (max 30 points)
@@ -309,7 +371,10 @@ export class FixerAssignmentService {
         score += ratingScore;
 
         // Completed jobs score (max 20 points)
-        const completedJobsScore = Math.min(fixer.stats.completedJobs * 0.2, 20);
+        const completedJobsScore = Math.min(
+          fixer.stats.completedJobs * 0.2,
+          20,
+        );
         score += completedJobsScore;
       }
 

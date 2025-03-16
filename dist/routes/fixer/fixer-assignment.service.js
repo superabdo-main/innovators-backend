@@ -25,7 +25,12 @@ let FixerAssignmentService = FixerAssignmentService_1 = class FixerAssignmentSer
     parseTimeString(timeStr) {
         try {
             const [hours, minutes] = timeStr.split(':').map(Number);
-            if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+            if (isNaN(hours) ||
+                isNaN(minutes) ||
+                hours < 0 ||
+                hours > 23 ||
+                minutes < 0 ||
+                minutes > 59) {
                 throw new Error('Invalid time format');
             }
             return hours * 60 + minutes;
@@ -59,17 +64,26 @@ let FixerAssignmentService = FixerAssignmentService_1 = class FixerAssignmentSer
         try {
             const workTimeStr = this.formatTimeString(workDateTime);
             const endTimeStr = this.formatTimeString(endDateTime);
-            if (!fixer.workShift || !this.isTimeInRange(workTimeStr, fixer.workShift.start, fixer.workShift.end)) {
+            console.log(2, workTimeStr, endTimeStr);
+            if (!fixer.workShift ||
+                !this.isTimeInRange(workTimeStr, fixer.workShift.start, fixer.workShift.end)) {
                 return false;
             }
             for (const order of fixer.orders) {
-                const orderStart = this.formatTimeString(order.startTime);
-                const orderEndWithBreak = new Date(order.endTime);
-                orderEndWithBreak.setMinutes(orderEndWithBreak.getMinutes() + this.MINIMUM_BREAK_MINUTES);
-                const orderEndWithBreakStr = this.formatTimeString(orderEndWithBreak);
-                if (this.isTimeInRange(workTimeStr, orderStart, orderEndWithBreakStr) ||
-                    this.isTimeInRange(endTimeStr, orderStart, orderEndWithBreakStr)) {
-                    return false;
+                if (order.startTime && order.endTime) {
+                    console.log(3, order.startTime, order.endTime);
+                    const orderStart = this.formatTimeString(order.startTime);
+                    console.log(4, orderStart, order.startTime);
+                    const orderEndWithBreak = new Date(order.endTime);
+                    console.log(5, orderEndWithBreak, order.endTime);
+                    orderEndWithBreak.setMinutes(orderEndWithBreak.getMinutes() + this.MINIMUM_BREAK_MINUTES);
+                    console.log(6, orderEndWithBreak, order.endTime);
+                    const orderEndWithBreakStr = this.formatTimeString(orderEndWithBreak);
+                    console.log(7, orderEndWithBreakStr, orderEndWithBreak);
+                    if (this.isTimeInRange(workTimeStr, orderStart, orderEndWithBreakStr) ||
+                        this.isTimeInRange(endTimeStr, orderStart, orderEndWithBreakStr)) {
+                        return false;
+                    }
                 }
             }
             return true;

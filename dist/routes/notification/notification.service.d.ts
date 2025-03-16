@@ -29,24 +29,7 @@ export declare class NotificationService {
         lastAttemptAt: Date | null;
         sentAt: Date | null;
     }>;
-    getUnreadNotifications(userId: number): Promise<{
-        id: number;
-        uuid: string;
-        createdAt: Date;
-        updatedAt: Date;
-        data: string | null;
-        title: string;
-        body: string;
-        imageUrl: string | null;
-        isRead: boolean;
-        isGlobal: boolean;
-        recipientId: number | null;
-        fcmToken: string | null;
-        sendStatus: import("@prisma/client").$Enums.SendStatus;
-        sendAttempts: number;
-        lastAttemptAt: Date | null;
-        sentAt: Date | null;
-    }[]>;
+    getUnreadNotifications(userId: number): Promise<number>;
     markAsRead(notificationId: number): Promise<{
         id: number;
         uuid: string;

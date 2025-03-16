@@ -79,4 +79,22 @@ export declare class NotificationService {
     }>;
     private sendFCMNotification;
     private sendFCMNotificationToTopic;
+    deleteNotification(notificationId: number, userId: number): Promise<{
+        id: number;
+        uuid: string;
+        createdAt: Date;
+        updatedAt: Date;
+        data: string | null;
+        title: string;
+        body: string;
+        imageUrl: string | null;
+        isRead: boolean;
+        isGlobal: boolean;
+        recipientId: number | null;
+        fcmToken: string | null;
+        sendStatus: import("@prisma/client").$Enums.SendStatus;
+        sendAttempts: number;
+        lastAttemptAt: Date | null;
+        sentAt: Date | null;
+    }>;
 }

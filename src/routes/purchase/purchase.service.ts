@@ -24,6 +24,13 @@ export class PurchaseService {
           status: 401,
           error: 'Invalid token',
         };
+        
+        // Convert the date string to a Date object while preserving local time
+        const maintenanceDate = new Date(purchaseData.maintenanceDate);
+        maintenanceDate.setHours(maintenanceDate.getHours() + 2);
+        purchaseData.maintenanceDate = maintenanceDate;
+        
+        
       const purchase = await this.prisma.purchase.create({
         data: {
           client: { connect: { id: clientData.id } },
@@ -37,6 +44,7 @@ export class PurchaseService {
           items: purchaseData.items ? {
             create: purchaseData.items.map((item) => ({
               itemUUID: parseInt(item.itemUUID.toString()) || null,
+              itemName: item.itemName || null,
               serviceId: item.serviceId || null,
               price: item.price || null,
               quantity: item.quantity || null,
@@ -70,7 +78,7 @@ export class PurchaseService {
           const order = await this.orderService.create(
             purchase.id,
             servicesIds,
-            purchaseData.maintenanceDate,
+            new Date(purchaseData.maintenanceDate),
             estimatedDuration,
           );
           if (order) {

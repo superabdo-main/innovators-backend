@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards, Delete } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 
 // DTOs for requests
@@ -66,6 +66,19 @@ export class NotificationController {
     @Param('userId') userId: string,
   ) {
     return this.notificationService.markAsRead(
+      parseInt(id, 10),
+      parseInt(userId, 10),
+    );
+  }
+
+  // Delete a notification
+  @Delete(':id/:userId')
+  // @UseGuards(JwtAuthGuard)
+  async deleteNotification(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.notificationService.deleteNotification(
       parseInt(id, 10),
       parseInt(userId, 10),
     );

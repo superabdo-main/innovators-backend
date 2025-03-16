@@ -97,6 +97,24 @@ export declare class NotificationController {
         lastAttemptAt: Date | null;
         sentAt: Date | null;
     }>;
+    deleteNotification(id: string, userId: string): Promise<{
+        id: number;
+        uuid: string;
+        createdAt: Date;
+        updatedAt: Date;
+        data: string | null;
+        title: string;
+        body: string;
+        imageUrl: string | null;
+        isRead: boolean;
+        isGlobal: boolean;
+        recipientId: number | null;
+        fcmToken: string | null;
+        sendStatus: import("@prisma/client").$Enums.SendStatus;
+        sendAttempts: number;
+        lastAttemptAt: Date | null;
+        sentAt: Date | null;
+    }>;
     storeToken(data: {
         userId: number;
         token: string;

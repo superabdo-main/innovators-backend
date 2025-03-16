@@ -32,6 +32,9 @@ let PurchaseService = class PurchaseService {
                     status: 401,
                     error: 'Invalid token',
                 };
+            const maintenanceDate = new Date(purchaseData.maintenanceDate);
+            maintenanceDate.setHours(maintenanceDate.getHours() + 2);
+            purchaseData.maintenanceDate = maintenanceDate;
             const purchase = await this.prisma.purchase.create({
                 data: {
                     client: { connect: { id: clientData.id } },
@@ -45,6 +48,7 @@ let PurchaseService = class PurchaseService {
                     items: purchaseData.items ? {
                         create: purchaseData.items.map((item) => ({
                             itemUUID: parseInt(item.itemUUID.toString()) || null,
+                            itemName: item.itemName || null,
                             serviceId: item.serviceId || null,
                             price: item.price || null,
                             quantity: item.quantity || null,
@@ -70,7 +74,7 @@ let PurchaseService = class PurchaseService {
                 ].filter(id => id !== null && id !== undefined);
                 const estimatedDuration = await this.maintenanceTimeService.predictMaintenanceTime(purchaseData.items.map((item) => item.itemUUID));
                 if (estimatedDuration) {
-                    const order = await this.orderService.create(purchase.id, servicesIds, purchaseData.maintenanceDate, estimatedDuration);
+                    const order = await this.orderService.create(purchase.id, servicesIds, new Date(purchaseData.maintenanceDate), estimatedDuration);
                     if (order) {
                         return {
                             data: order,

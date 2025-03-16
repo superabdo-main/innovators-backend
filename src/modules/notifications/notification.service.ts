@@ -6,11 +6,13 @@ import { SendStatus } from '@prisma/client';
 @Injectable()
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
-  
+
   constructor(private prisma: PrismaService) {
     // Ensure Firebase admin is initialized (should be done in the main module)
     if (!admin.apps.length) {
-      this.logger.warn('Firebase admin SDK not initialized in the notification service');
+      this.logger.warn(
+        'Firebase admin SDK not initialized in the notification service',
+      );
     }
   }
 
@@ -42,7 +44,7 @@ export class NotificationService {
       // If it's a global notification, send to all users
       if (data.isGlobal) {
         await this.sendGlobalNotification(notification.id);
-      } 
+      }
       // If it's for a specific user, send to that user
       else if (data.recipientId) {
         await this.sendUserNotification(notification.id);
@@ -50,7 +52,10 @@ export class NotificationService {
 
       return notification;
     } catch (error) {
-      this.logger.error(`Error creating notification: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error creating notification: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -68,34 +73,36 @@ export class NotificationService {
       }
 
       if (!notification.recipient) {
-        throw new Error(`Recipient not found for notification ${notificationId}`);
+        throw new Error(
+          `Recipient not found for notification ${notificationId}`,
+        );
       }
 
       // Get FCM token from the user's sessions
-      const userSessions = await this.prisma.clientSession.findMany({
-        where: { 
+      const userSessions = await this.prisma.clientSession.findFirst({
+        where: {
           userId: notification.recipientId,
           fcmToken: { not: null },
         },
         select: { fcmToken: true },
       });
 
-      if (!userSessions.length) {
+      if (!userSessions) {
         await this.prisma.notification.update({
           where: { id: notificationId },
-          data: { 
+          data: {
             sendStatus: SendStatus.FAILED,
             sendAttempts: { increment: 1 },
             lastAttemptAt: new Date(),
           },
         });
-        throw new Error(`No FCM tokens found for user ${notification.recipientId}`);
+        throw new Error(
+          `No FCM tokens found for user ${notification.recipientId}`,
+        );
       }
       // Send notification to all user devices
-      for (const session of userSessions) {
-        if (session.fcmToken) {
-          await this.sendFCMNotification(session.fcmToken, notification);
-        }
+      if (userSessions.fcmToken) {
+        await this.sendFCMNotification(userSessions.fcmToken, notification);
       }
 
       // Update notification status
@@ -111,8 +118,11 @@ export class NotificationService {
 
       return true;
     } catch (error) {
-      this.logger.error(`Error sending user notification: ${error.message}`, error.stack);
-      
+      this.logger.error(
+        `Error sending user notification: ${error.message}`,
+        error.stack,
+      );
+
       // Update attempt count
       await this.prisma.notification.update({
         where: { id: notificationId },
@@ -122,7 +132,7 @@ export class NotificationService {
           lastAttemptAt: new Date(),
         },
       });
-      
+
       throw error;
     }
   }
@@ -152,7 +162,7 @@ export class NotificationService {
       if (!sessions.length) {
         await this.prisma.notification.update({
           where: { id: notificationId },
-          data: { 
+          data: {
             sendStatus: SendStatus.FAILED,
             sendAttempts: { increment: 1 },
             lastAttemptAt: new Date(),
@@ -164,7 +174,7 @@ export class NotificationService {
       // Send to topic or to each token individually
       // Option 1: Send to topic if you've set up topics
       // await this.sendFCMNotificationToTopic('all_users', notification);
-      
+
       // Option 2: Send to individual tokens
       for (const session of sessions) {
         if (session.fcmToken) {
@@ -185,8 +195,11 @@ export class NotificationService {
 
       return true;
     } catch (error) {
-      this.logger.error(`Error sending global notification: ${error.message}`, error.stack);
-      
+      this.logger.error(
+        `Error sending global notification: ${error.message}`,
+        error.stack,
+      );
+
       // Update attempt count
       await this.prisma.notification.update({
         where: { id: notificationId },
@@ -196,7 +209,7 @@ export class NotificationService {
           lastAttemptAt: new Date(),
         },
       });
-      
+
       throw error;
     }
   }
@@ -207,15 +220,14 @@ export class NotificationService {
       const notification = await this.prisma.notification.findFirst({
         where: {
           id: notificationId,
-          OR: [
-            { recipientId: userId },
-            { isGlobal: true }
-          ]
+          OR: [{ recipientId: userId }, { isGlobal: true }],
         },
       });
 
       if (!notification) {
-        throw new Error(`Notification with ID ${notificationId} not found or not accessible by user ${userId}`);
+        throw new Error(
+          `Notification with ID ${notificationId} not found or not accessible by user ${userId}`,
+        );
       }
 
       return this.prisma.notification.update({
@@ -223,7 +235,10 @@ export class NotificationService {
         data: { isRead: true },
       });
     } catch (error) {
-      this.logger.error(`Error marking notification as read: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error marking notification as read: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -232,14 +247,11 @@ export class NotificationService {
   async getUserNotifications(userId: number, page = 1, limit = 20) {
     try {
       const skip = (page - 1) * limit;
-      
+
       const [notifications, total] = await Promise.all([
         this.prisma.notification.findMany({
           where: {
-            OR: [
-              { recipientId: userId },
-              { isGlobal: true }
-            ]
+            OR: [{ recipientId: userId }, { isGlobal: true }],
           },
           orderBy: { createdAt: 'desc' },
           skip,
@@ -247,10 +259,7 @@ export class NotificationService {
         }),
         this.prisma.notification.count({
           where: {
-            OR: [
-              { recipientId: userId },
-              { isGlobal: true }
-            ]
+            OR: [{ recipientId: userId }, { isGlobal: true }],
           },
         }),
       ]);
@@ -265,7 +274,10 @@ export class NotificationService {
         },
       };
     } catch (error) {
-      this.logger.error(`Error getting user notifications: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error getting user notifications: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -275,25 +287,31 @@ export class NotificationService {
     try {
       const count = await this.prisma.notification.count({
         where: {
-          OR: [
-            { recipientId: userId },
-            { isGlobal: true }
-          ],
+          OR: [{ recipientId: userId }],
           isRead: false,
         },
       });
 
+
       return { count };
     } catch (error) {
-      this.logger.error(`Error getting unread count: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error getting unread count: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
   // Helper method to send FCM notification
   private async sendFCMNotification(
-    token: string, 
-    notification: { title: string; body: string; data?: string; imageUrl?: string }
+    token: string,
+    notification: {
+      title: string;
+      body: string;
+      data?: string;
+      imageUrl?: string;
+    },
   ) {
     try {
       const message: admin.messaging.Message = {
@@ -310,7 +328,10 @@ export class NotificationService {
       this.logger.log(`Successfully sent FCM message: ${response}`);
       return response;
     } catch (error) {
-      this.logger.error(`Error sending FCM notification: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error sending FCM notification: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -318,7 +339,12 @@ export class NotificationService {
   // Helper method to send FCM notification to a topic
   private async sendFCMNotificationToTopic(
     topic: string,
-    notification: { title: string; body: string; data?: string; imageUrl?: string }
+    notification: {
+      title: string;
+      body: string;
+      data?: string;
+      imageUrl?: string;
+    },
   ) {
     try {
       const message: admin.messaging.Message = {
@@ -335,8 +361,41 @@ export class NotificationService {
       this.logger.log(`Successfully sent FCM message to topic: ${response}`);
       return response;
     } catch (error) {
-      this.logger.error(`Error sending FCM notification to topic: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error sending FCM notification to topic: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
-} 
+
+  // Delete a notification
+  async deleteNotification(notificationId: number, userId: number) {
+    try {
+      // First check if the notification exists and belongs to the user or is global
+      const notification = await this.prisma.notification.findFirst({
+        where: {
+          id: notificationId,
+          OR: [{ recipientId: userId }, { isGlobal: true }],
+        },
+      });
+
+      if (!notification) {
+        throw new Error(
+          `Notification with ID ${notificationId} not found or not accessible by user ${userId}`,
+        );
+      }
+
+      // Delete the notification
+      return this.prisma.notification.delete({
+        where: { id: notificationId },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Error deleting notification: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+}

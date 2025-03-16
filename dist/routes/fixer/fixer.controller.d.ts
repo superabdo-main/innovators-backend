@@ -40,9 +40,9 @@ export declare class FixerController {
                 completedJobs: number | null;
             };
             id: number;
-            name: string | null;
             userId: string | null;
             uuid: string;
+            name: string | null;
             phone: string | null;
             email: string | null;
             location: string | null;

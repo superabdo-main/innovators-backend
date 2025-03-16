@@ -17,6 +17,7 @@ export class CreatePurchaseDto {
 export class CartItem {
   id?: number;
   itemUUID?: number;
+  itemName?: string;
   service: MainServicesDto;
   serviceId: number;
   price: number;

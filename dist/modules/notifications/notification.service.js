@@ -62,14 +62,14 @@ let NotificationService = NotificationService_1 = class NotificationService {
             if (!notification.recipient) {
                 throw new Error(`Recipient not found for notification ${notificationId}`);
             }
-            const userSessions = await this.prisma.clientSession.findMany({
+            const userSessions = await this.prisma.clientSession.findFirst({
                 where: {
                     userId: notification.recipientId,
                     fcmToken: { not: null },
                 },
                 select: { fcmToken: true },
             });
-            if (!userSessions.length) {
+            if (!userSessions) {
                 await this.prisma.notification.update({
                     where: { id: notificationId },
                     data: {
@@ -80,10 +80,8 @@ let NotificationService = NotificationService_1 = class NotificationService {
                 });
                 throw new Error(`No FCM tokens found for user ${notification.recipientId}`);
             }
-            for (const session of userSessions) {
-                if (session.fcmToken) {
-                    await this.sendFCMNotification(session.fcmToken, notification);
-                }
+            if (userSessions.fcmToken) {
+                await this.sendFCMNotification(userSessions.fcmToken, notification);
             }
             await this.prisma.notification.update({
                 where: { id: notificationId },
@@ -170,10 +168,7 @@ let NotificationService = NotificationService_1 = class NotificationService {
             const notification = await this.prisma.notification.findFirst({
                 where: {
                     id: notificationId,
-                    OR: [
-                        { recipientId: userId },
-                        { isGlobal: true }
-                    ]
+                    OR: [{ recipientId: userId }, { isGlobal: true }],
                 },
             });
             if (!notification) {
@@ -195,10 +190,7 @@ let NotificationService = NotificationService_1 = class NotificationService {
             const [notifications, total] = await Promise.all([
                 this.prisma.notification.findMany({
                     where: {
-                        OR: [
-                            { recipientId: userId },
-                            { isGlobal: true }
-                        ]
+                        OR: [{ recipientId: userId }, { isGlobal: true }],
                     },
                     orderBy: { createdAt: 'desc' },
                     skip,
@@ -206,10 +198,7 @@ let NotificationService = NotificationService_1 = class NotificationService {
                 }),
                 this.prisma.notification.count({
                     where: {
-                        OR: [
-                            { recipientId: userId },
-                            { isGlobal: true }
-                        ]
+                        OR: [{ recipientId: userId }, { isGlobal: true }],
                     },
                 }),
             ]);
@@ -232,10 +221,7 @@ let NotificationService = NotificationService_1 = class NotificationService {
         try {
             const count = await this.prisma.notification.count({
                 where: {
-                    OR: [
-                        { recipientId: userId },
-                        { isGlobal: true }
-                    ],
+                    OR: [{ recipientId: userId }],
                     isRead: false,
                 },
             });
@@ -283,6 +269,26 @@ let NotificationService = NotificationService_1 = class NotificationService {
         }
         catch (error) {
             this.logger.error(`Error sending FCM notification to topic: ${error.message}`, error.stack);
+            throw error;
+        }
+    }
+    async deleteNotification(notificationId, userId) {
+        try {
+            const notification = await this.prisma.notification.findFirst({
+                where: {
+                    id: notificationId,
+                    OR: [{ recipientId: userId }, { isGlobal: true }],
+                },
+            });
+            if (!notification) {
+                throw new Error(`Notification with ID ${notificationId} not found or not accessible by user ${userId}`);
+            }
+            return this.prisma.notification.delete({
+                where: { id: notificationId },
+            });
+        }
+        catch (error) {
+            this.logger.error(`Error deleting notification: ${error.message}`, error.stack);
             throw error;
         }
     }

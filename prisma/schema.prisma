@@ -210,6 +210,7 @@ model Purchase {
 model CartItem {
   id         Int          @id @default(autoincrement())
   itemUUID   Int?
+  itemName   String?
   service    MainServices @relation(fields: [serviceId], references: [id])
   serviceId  Int
   price      Float?

@@ -15,6 +15,7 @@ export declare class CreatePurchaseDto {
 export declare class CartItem {
     id?: number;
     itemUUID?: number;
+    itemName?: string;
     service: MainServicesDto;
     serviceId: number;
     price: number;

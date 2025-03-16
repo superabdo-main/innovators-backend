@@ -12,13 +12,21 @@ const orders_service_1 = require("./orders.service");
 const orders_controller_1 = require("./orders.controller");
 const fixer_service_1 = require("../fixer/fixer.service");
 const fixer_assignment_service_1 = require("../fixer/fixer-assignment.service");
+const orders_notification_service_1 = require("./orders-notification.service");
+const notification_service_1 = require("../../modules/notifications/notification.service");
 let OrdersModule = class OrdersModule {
 };
 exports.OrdersModule = OrdersModule;
 exports.OrdersModule = OrdersModule = __decorate([
     (0, common_1.Module)({
         controllers: [orders_controller_1.OrdersController],
-        providers: [orders_service_1.OrdersService, fixer_assignment_service_1.FixerAssignmentService, fixer_service_1.FixerService],
+        providers: [
+            orders_service_1.OrdersService,
+            fixer_assignment_service_1.FixerAssignmentService,
+            fixer_service_1.FixerService,
+            orders_notification_service_1.OrdersNotificationService,
+            notification_service_1.NotificationService
+        ],
     })
 ], OrdersModule);
 //# sourceMappingURL=orders.module.js.map

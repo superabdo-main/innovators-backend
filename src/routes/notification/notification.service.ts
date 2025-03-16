@@ -44,7 +44,7 @@ export class NotificationService {
 
   async getUnreadNotifications(userId: number) {
     try {
-      return await this.prisma.notification.findMany({
+      const notifications = await this.prisma.notification.findMany({
         where: {
           recipientId: userId,
           isRead: false,
@@ -53,6 +53,8 @@ export class NotificationService {
           createdAt: 'desc',
         },
       });
+      console.log(notifications);
+      return notifications.length;
     } catch (error) {
       this.logger.error('Error fetching unread notifications:', error);
       throw error;
