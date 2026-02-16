@@ -15,49 +15,47 @@ export declare class OrdersService {
             purchase: {
                 items: {
                     id: number;
+                    purchaseId: number | null;
                     createdAt: Date;
                     updatedAt: Date;
-                    purchaseId: number | null;
+                    serviceId: number;
                     itemUUID: number | null;
                     itemName: string | null;
-                    serviceId: number;
                     price: number | null;
                     quantity: number;
                 }[];
                 malfunctions: {
                     id: number;
+                    description: string | null;
+                    purchaseId: number | null;
                     createdAt: Date;
                     updatedAt: Date;
-                    purchaseId: number | null;
-                    itemUUID: number | null;
                     serviceId: number;
-                    description: string | null;
+                    itemUUID: number | null;
                     imagesUrls: string[];
                 }[];
             } & {
                 id: number;
+                phone: string | null;
                 createdAt: Date;
                 updatedAt: Date;
-                clientId: number;
+                orderOperatorId: number | null;
                 fullname: string | null;
                 address: string | null;
-                phone: string | null;
                 maintenanceDate: Date | null;
                 subTotal: number | null;
                 discount: number | null;
                 total: number | null;
-                orderOperatorId: number | null;
+                clientId: number;
             };
             fixers: {
                 id: number;
-                createdAt: Date;
-                updatedAt: Date;
-                phone: string | null;
-                uuid: string;
                 name: string | null;
-                email: string | null;
-                password: string;
                 userId: string | null;
+                uuid: string;
+                password: string;
+                phone: string | null;
+                email: string | null;
                 location: string | null;
                 profileImage: string | null;
                 idCardApproved: boolean;
@@ -67,18 +65,22 @@ export declare class OrdersService {
                 activeOrderId: number | null;
                 isBanned: boolean;
                 pause: boolean;
+                createdAt: Date;
+                updatedAt: Date;
             }[];
             fixersNotes: {
                 id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                imageUrl: string | null;
                 orderId: number;
                 fixerUserId: number;
                 note: string | null;
-                imageUrl: string | null;
             }[];
         } & {
             id: number;
+            createdAt: Date;
+            updatedAt: Date;
             leaderId: number | null;
             adminNotes: string | null;
             beginWork: boolean | null;
@@ -93,8 +95,6 @@ export declare class OrdersService {
             maintenanceStartDate: Date | null;
             startTime: Date | null;
             endTime: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
         })[];
         ok: boolean;
         status: number;
@@ -105,49 +105,47 @@ export declare class OrdersService {
             purchase: {
                 items: {
                     id: number;
+                    purchaseId: number | null;
                     createdAt: Date;
                     updatedAt: Date;
-                    purchaseId: number | null;
+                    serviceId: number;
                     itemUUID: number | null;
                     itemName: string | null;
-                    serviceId: number;
                     price: number | null;
                     quantity: number;
                 }[];
                 malfunctions: {
                     id: number;
+                    description: string | null;
+                    purchaseId: number | null;
                     createdAt: Date;
                     updatedAt: Date;
-                    purchaseId: number | null;
-                    itemUUID: number | null;
                     serviceId: number;
-                    description: string | null;
+                    itemUUID: number | null;
                     imagesUrls: string[];
                 }[];
             } & {
                 id: number;
+                phone: string | null;
                 createdAt: Date;
                 updatedAt: Date;
-                clientId: number;
+                orderOperatorId: number | null;
                 fullname: string | null;
                 address: string | null;
-                phone: string | null;
                 maintenanceDate: Date | null;
                 subTotal: number | null;
                 discount: number | null;
                 total: number | null;
-                orderOperatorId: number | null;
+                clientId: number;
             };
             fixers: {
                 id: number;
-                createdAt: Date;
-                updatedAt: Date;
-                phone: string | null;
-                uuid: string;
                 name: string | null;
-                email: string | null;
-                password: string;
                 userId: string | null;
+                uuid: string;
+                password: string;
+                phone: string | null;
+                email: string | null;
                 location: string | null;
                 profileImage: string | null;
                 idCardApproved: boolean;
@@ -157,18 +155,22 @@ export declare class OrdersService {
                 activeOrderId: number | null;
                 isBanned: boolean;
                 pause: boolean;
+                createdAt: Date;
+                updatedAt: Date;
             }[];
             fixersNotes: {
                 id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                imageUrl: string | null;
                 orderId: number;
                 fixerUserId: number;
                 note: string | null;
-                imageUrl: string | null;
             }[];
         } & {
             id: number;
+            createdAt: Date;
+            updatedAt: Date;
             leaderId: number | null;
             adminNotes: string | null;
             beginWork: boolean | null;
@@ -183,8 +185,6 @@ export declare class OrdersService {
             maintenanceStartDate: Date | null;
             startTime: Date | null;
             endTime: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
         })[];
         ok: boolean;
         status: number;
